@@ -371,6 +371,21 @@
   .ins-value.down { color: #D85A30; }
   .ins-value.neu  { color: var(--text-secondary); }
   .ins-arrow { font-size: 10px; margin-left: 2px; }
+
+  /* ── report tab: variable bridge + scoped table styles ── */
+  #tab-report {
+    --color-text-primary: var(--text);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-tertiary: var(--text-tertiary);
+    --color-border-tertiary: var(--border);
+    --color-background-secondary: var(--bg-secondary);
+  }
+  #tab-report table { width:100%; border-collapse:collapse; font-size:13px; border:0.5px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+  #tab-report th { font-size:11px; font-weight:500; color:var(--text-tertiary); text-align:left; padding:7px 12px; background:var(--bg-secondary); border-bottom:0.5px solid var(--border); letter-spacing:0.03em; }
+  #tab-report td { padding:9px 12px; border-bottom:0.5px solid var(--border); color:var(--text); vertical-align:top; line-height:1.5; }
+  #tab-report tr:last-child td { border-bottom:none; }
+  #tab-report tbody tr:hover { background:var(--bg-secondary); }
+  @media(max-width:600px){ #tab-report td,#tab-report th { padding:6px; font-size:12px; } }
 </style>
 </head>
 <body>
@@ -404,6 +419,7 @@
   <nav class="tab-nav">
     <button class="tab-btn active" data-tab="charts" onclick="switchTab('charts')">Charts</button>
     <button class="tab-btn" data-tab="insights" onclick="switchTab('insights')">Insights</button>
+    <button class="tab-btn" data-tab="report" onclick="switchTab('report')">Full Report</button>
   </nav>
 
   <div id="tab-charts">
@@ -492,6 +508,167 @@
   <div id="tab-insights" style="display:none">
     <div id="ins-body"></div>
   </div><!-- /tab-insights -->
+
+  <div id="tab-report" style="display:none">
+<div class="ins-wrap">
+
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-bottom:1.5rem;">
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Oct rev</div>
+    <div style="font-size:14px;font-weight:500;">₹3.8L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹12k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Nov rev</div>
+    <div style="font-size:14px;font-weight:500;">₹6.3L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹21k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Dec rev</div>
+    <div style="font-size:14px;font-weight:500;">₹7.1L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹23k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Jan rev</div>
+    <div style="font-size:14px;font-weight:500;">₹7.1L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹23k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Feb rev</div>
+    <div style="font-size:14px;font-weight:500;">₹5.2L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹18k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Mar rev</div>
+    <div style="font-size:14px;font-weight:500;">₹5.7L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹18k/day</div>
+  </div>
+  <div style="background:#E1F5EE;border-radius:8px;padding:.75rem;text-align:center;border:1px solid #9FE1CB;">
+    <div style="font-size:10px;color:#0F6E56;margin-bottom:4px;">Apr run rate</div>
+    <div style="font-size:14px;font-weight:500;color:#085041;">₹9.9L</div>
+    <div style="font-size:10px;color:#0F6E56;">₹33k/day</div>
+  </div>
+</div>
+
+<div class="ins-section">
+  <div class="ins-section-title">Positive signals</div>
+  <table>
+    <thead><tr><th style="width:18%">Metric</th><th style="width:22%">What the data shows</th><th style="width:22%">Scale / magnitude</th><th style="width:38%">So what</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-pos">Revenue</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Daily run rate</span></td>
+        <td>Apr daily average of ₹32,882 is the highest in the entire dataset — higher than Dec–Jan peak</td>
+        <td class="num"><span class="arrow-up">↑ +158%</span> vs Oct (₹12k/day)<br><span class="arrow-up">↑ +43%</span> vs Dec peak (₹23k/day)<br>Apr run rate = ₹9.9L/month</td>
+        <td>Despite lower volumes and poor ROAS, revenue per day has never been higher. The 1:1 shift is driving higher ticket sizes. If this holds for a full month, April will be the best month ever.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Revenue</span><br><span style="font-size:12px;color:var(--color-text-secondary);">1:1 sessions</span></td>
+        <td>1:1 revenue grew from ₹1.4L (Oct) → ₹2.3L (Apr, only 10 days). Apr 7 alone was ₹51,490 in 1:1.</td>
+        <td class="num">Oct: 36% of mix<br>Apr: 71% of mix<br><span class="arrow-up">↑ +69%</span> absolute 1:1 revenue</td>
+        <td>Users are willing to pay for personal sessions. Average ticket per 1:1 purchase is significantly higher than group. This is a premium product signal — lean into it with packaging and pricing strategy.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Conversion</span><br><span style="font-size:12px;color:var(--color-text-secondary);">CR recovery</span></td>
+        <td>Apr CR (1.96% avg) is back near Jan levels after bottoming in Feb (1.46%)</td>
+        <td class="num">Feb low: 1.46%<br>Apr: 1.96%<br><span class="arrow-up">↑ +34%</span> recovery from trough</td>
+        <td>The funnel is converting better again. Whether driven by better traffic quality or improved landing experience, this is an early sign the top-of-funnel is healing.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Acquisition</span><br><span style="font-size:12px;color:var(--color-text-secondary);">New buyer %</span></td>
+        <td>Apr new buyer % has recovered to 53% after dipping to 43% in Feb</td>
+        <td class="num">Feb low: 43%<br>Apr: 53%<br>Best month: Nov at 54%</td>
+        <td>New buyers are returning to a majority share. Combined with higher daily revenue, this suggests the platform is attracting fresh, high-intent users — not just re-monetising the existing base.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Owned channels</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Notifications</span></td>
+        <td>Push/notifications consistently contribute 8–10% of attributed purchases every month at near-zero cost</td>
+        <td class="num">~8% share of all attributed purchases<br>Zero paid spend</td>
+        <td>This is your most efficient marketing channel by a wide margin. Every ₹ invested in improving push notification quality and segmentation has asymmetric return vs paid ads.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">ROAS</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Recovery signal</span></td>
+        <td>Apr ROAS (1.41x avg) is recovering from the Mar bottom (0.94x). Individual days above 2x are appearing again.</td>
+        <td class="num">Mar avg: 0.94x (loss)<br>Apr avg: 1.41x<br><span class="arrow-up">↑ +50%</span> recovery</td>
+        <td>Paid is no longer actively loss-making on average. Still well below the Oct–Nov 2.5–3x healthy range, but the direction has reversed. Keep spend minimal until it sustains above 2x.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="ins-section">
+  <div class="ins-section-title">Negative signals</div>
+  <table>
+    <thead><tr><th style="width:18%">Metric</th><th style="width:22%">What the data shows</th><th style="width:22%">Scale / magnitude</th><th style="width:38%">So what</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-neg">ROAS</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Paid efficiency</span></td>
+        <td>ROAS collapsed from 2.63x (Oct–Dec) to 0.94x in Mar — meaning every ₹1 spent returned less than ₹1</td>
+        <td class="num">Oct avg: 2.63x<br>Mar avg: 0.94x<br><span class="arrow-dn">↓ −64%</span> deterioration<br>Months below 1x: Feb, Mar</td>
+        <td>You almost certainly burned significant capital in Feb–Mar. If monthly ad spend was ₹1–2L, you may have lost ₹50k–1L in those two months alone. The ad creative/audience needs a complete reset before scaling.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Volume</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Purchase count</span></td>
+        <td>Total purchases dropped from 366/month (Jan peak) to just 128 in Apr's first 10 days (~384/month run rate, but daily avg is 12.8 vs Jan's 11.8 — actually recovering)</td>
+        <td class="num">Jan: 366 purchases<br>Apr run rate: ~384<br>Feb trough: 254<br><span class="arrow-nt">→ Recovering</span></td>
+        <td>Volume is actually recovering in April. However, this is being driven by fewer, higher-value 1:1 purchases rather than broad group session volume — which limits scalability.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Group sessions</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Revenue collapse</span></td>
+        <td>Group revenue has fallen from ₹4.7L (Dec) to just ₹95k in Apr's 10 days (~₹2.9L run rate). That's a −38% decline month equivalent vs Dec.</td>
+        <td class="num">Dec: ₹4.7L group<br>Jan: ₹3.8L group<br>Mar: ₹2.8L group<br>Apr run rate: ₹2.9L<br><span class="arrow-dn">↓ −38%</span> vs Dec</td>
+        <td>Group sessions are the scalable, repeatable revenue engine. If they continue shrinking, total revenue growth will be capped by practitioner hours. This is a structural risk that compounds over time.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Conversion</span><br><span style="font-size:12px;color:var(--color-text-secondary);">CR vs Oct</span></td>
+        <td>Oct CR averaged 2.66% — the highest in the dataset. Current Apr avg (1.96%) is still 26% below that despite recovery.</td>
+        <td class="num">Oct: 2.66%<br>Apr: 1.96%<br><span class="arrow-dn">↓ −26%</span> vs baseline<br>Dec/Feb trough: 1.46%</td>
+        <td>For every 100 users who see the page today, ~0.7 fewer convert than in October. At Oct's scale of traffic this is material. Finding what drove Oct's high CR (likely specific campaign + landing page combination) should be a priority.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Attribution</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Dark traffic</span></td>
+        <td>67% of all purchases show as "undefined" / direct source — unattributed across all 7 months consistently</td>
+        <td class="num">67% of ~1,935 total purchases = ~1,300 purchases with no source data<br>Consistent every month</td>
+        <td>You cannot optimise what you cannot measure. This blind spot means marketing budget allocation decisions are effectively guesswork. UTM tagging on all practitioner shares, WhatsApp messages, and CRM links would immediately improve visibility.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Scalability</span><br><span style="font-size:12px;color:var(--color-text-secondary);">1:1 dependency</span></td>
+        <td>April's revenue high is almost entirely 1:1 driven (71% share). This model is bottlenecked by practitioner availability.</td>
+        <td class="num">Apr 1:1 rev: ₹2.3L (10 days)<br>Apr group rev: ₹96k (10 days)<br>1:1 share: 71% vs Oct's 36%</td>
+        <td>The revenue ceiling is now defined by how many hours practitioners can give. Without a parallel group session revival, growth will stall the moment 1:1 capacity is full — likely sooner than you expect.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="ins-section">
+  <div class="ins-section-title">Watch carefully</div>
+  <table>
+    <thead><tr><th style="width:18%">Metric</th><th style="width:22%">What the data shows</th><th style="width:22%">Scale / magnitude</th><th style="width:38%">So what</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-warn">Apr momentum</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Only 10 days</span></td>
+        <td>Apr's ₹33k/day average is heavily skewed by Apr 7 (₹57k) and Apr 9 (₹52k) — two very large 1:1 days</td>
+        <td class="num">Apr 7: ₹57,236 total<br>Apr 9: ₹51,769 total<br>Without these 2 days: ~₹24k/day</td>
+        <td>The Apr run rate of ₹9.9L is potentially misleading. Strip out 2 outlier days and the run rate drops to ~₹7.2L — still strong but not exceptional. Watch the full April close carefully.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Repeat buyers</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Growing share</span></td>
+        <td>Repeat buyers grew from 45% (Oct) to a peak of 57% (Feb) before settling at ~47% in Apr</td>
+        <td class="num">Oct repeat: 45%<br>Feb repeat peak: 57%<br>Apr repeat: 47%</td>
+        <td>A healthy repeat base is good for LTV, but if it grows at the expense of new acquisition it signals a platform that's monetising existing users rather than growing. Monitor new buyer % closely — should stay above 50%.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Instagram</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Low conversion</span></td>
+        <td>Instagram is a spiritual wellness platform's natural home, yet organic Instagram + ig tags contribute only ~2% of attributed purchases</td>
+        <td class="num">~2% of attributed purchases<br>Consistent and low across all months</td>
+        <td>Either Instagram traffic isn't being captured (UTM gaps) or the Instagram → app conversion journey is broken. Worth auditing the link-in-bio funnel specifically.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+  </div><!-- /tab-report -->
 
   <div class="footer">SoulSensei iOS · data Oct 2025 – Apr 2026 · built with Chart.js</div>
 
@@ -628,8 +805,9 @@ function applyRange(){render();}
 
 /* ── tab switching ─────────────────────────────────────────── */
 function _doSwitchTab(tab){
-  document.getElementById('tab-charts').style.display  = tab==='charts'   ? '' : 'none';
-  document.getElementById('tab-insights').style.display= tab==='insights' ? '' : 'none';
+  ['charts','insights','report'].forEach(t=>
+    document.getElementById('tab-'+t).style.display=tab===t?'':'none'
+  );
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
 }
 function switchTab(tab){
