@@ -273,6 +273,104 @@
     .controls { gap: 6px; }
     .header { flex-direction: column; }
   }
+
+  /* view transitions */
+  @supports (view-transition-name: none) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation-duration: 0.25s;
+      animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+    }
+  }
+
+  /* tab nav */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1.25rem;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    margin-bottom: -0.5px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--blue);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text-secondary); }
+
+  /* insights table */
+  .insights-section { margin-bottom: 1.5rem; }
+  .insights-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    padding: 0 2px;
+  }
+  .insights-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    font-size: 12px;
+  }
+  .insights-table thead th {
+    background: var(--bg-secondary);
+    color: var(--text-tertiary);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 12px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .insights-table tbody tr {
+    border-bottom: 0.5px solid var(--border);
+    transition: background 0.1s;
+  }
+  .insights-table tbody tr:last-child { border-bottom: none; }
+  .insights-table tbody tr:hover { background: var(--bg-secondary); }
+  .insights-table td { padding: 9px 12px; vertical-align: middle; }
+  .ins-metric {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .ins-metric.cr    { background: rgba(55,138,221,0.12);  color: #378ADD; }
+  .ins-metric.roas  { background: rgba(29,158,117,0.12);  color: #1D9E75; }
+  .ins-metric.buyers{ background: rgba(83,74,183,0.12);   color: #534AB7; }
+  .ins-metric.rev   { background: rgba(216,90,48,0.12);   color: #D85A30; }
+  .ins-metric.src   { background: rgba(186,117,23,0.12);  color: #BA7517; }
+  .ins-obs { color: var(--text); line-height: 1.4; }
+  .ins-detail { color: var(--text-secondary); font-size: 11px; }
+  .ins-value {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .ins-value.up   { color: #1D9E75; }
+  .ins-value.down { color: #D85A30; }
+  .ins-value.neu  { color: var(--text-secondary); }
+  .ins-arrow { font-size: 10px; margin-left: 2px; }
 </style>
 </head>
 <body>
@@ -302,6 +400,13 @@
       </div>
     </div>
   </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="charts" onclick="switchTab('charts')">Charts</button>
+    <button class="tab-btn" data-tab="insights" onclick="switchTab('insights')">Insights</button>
+  </nav>
+
+  <div id="tab-charts">
 
   <div class="kpi-row">
     <div class="kpi-card">
@@ -381,6 +486,12 @@
       <div class="chart-wrap" style="height:200px"><canvas id="c-src-pie" role="img" aria-label="Purchase source pie chart">Source pie chart</canvas></div>
     </div>
   </div>
+
+  </div><!-- /tab-charts -->
+
+  <div id="tab-insights" style="display:none">
+    <div id="ins-body"></div>
+  </div><!-- /tab-insights -->
 
   <div class="footer">SoulSensei iOS · data Oct 2025 – Apr 2026 · built with Chart.js</div>
 
@@ -502,6 +613,8 @@ function render(){
     el.innerHTML=`<div class="legend-dot" style="background:${srcColors[i]}"></div>${c}`;
     lg.appendChild(el);
   });
+
+  buildInsights({crK,crV,roK,roV,nrK,nrNew,nrRep,nrPct,rvK,rvG,rvO,srK,srM});
 }
 
 function setGranularity(g){
@@ -512,6 +625,130 @@ function setGranularity(g){
 }
 
 function applyRange(){render();}
+
+/* ── tab switching ─────────────────────────────────────────── */
+function _doSwitchTab(tab){
+  document.getElementById('tab-charts').style.display  = tab==='charts'   ? '' : 'none';
+  document.getElementById('tab-insights').style.display= tab==='insights' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+}
+function switchTab(tab){
+  if(document.startViewTransition){
+    document.startViewTransition(()=>_doSwitchTab(tab));
+  } else {
+    _doSwitchTab(tab);
+  }
+}
+
+/* ── insights builder ──────────────────────────────────────── */
+function buildInsights(data){
+  const {crK,crV,roK,roV,nrK,nrNew,nrRep,nrPct,rvK,rvG,rvO,srK,srM}=data;
+  const lbl=k=>getBucketLabel(k,gran);
+  const rows=[];
+
+  /* helpers */
+  const halfAvg=(arr,first)=>{const h=Math.floor(arr.length/2);const sl=first?arr.slice(0,h):arr.slice(-h);return sl.length?sl.reduce((a,b)=>a+b,0)/sl.length:0;};
+  const pct=(n,d)=>d?+(n/d*100).toFixed(1):0;
+
+  /* ── CONVERSION RATE ── */
+  if(crK.length){
+    const maxCR=crK.reduce((m,k,i)=>crV[i]>crV[m[1]]?[k,i]:m,[crK[0],0]);
+    const nonZero=crV.map((v,i)=>({v,k:crK[i]})).filter(x=>x.v>0);
+    const minCR=nonZero.length?nonZero.reduce((m,x)=>x.v<m.v?x:m,nonZero[0]):null;
+    const h1=halfAvg(crV,true),h2=halfAvg(crV,false);
+    const diff=+(h2-h1).toFixed(2);
+
+    rows.push({cat:'cr',obs:`Peak conversion rate`,detail:lbl(maxCR[0]),val:(crV[maxCR[1]]).toFixed(2)+'%',dir:'neu'});
+    if(minCR) rows.push({cat:'cr',obs:`Lowest non-zero CR`,detail:lbl(minCR.k),val:minCR.v.toFixed(2)+'%',dir:'neu'});
+    if(crK.length>=4) rows.push({cat:'cr',obs:`CR trend (first half → second half)`,detail:'period-over-period',val:(diff>=0?'+':'')+diff+'pp',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── ROAS ── */
+  if(roK.length){
+    const maxRO=roK.reduce((m,k,i)=>roV[i]>roV[m[1]]?[k,i]:m,[roK[0],0]);
+    const aboveBreak=roV.filter(v=>v>=1).length;
+    const h1=halfAvg(roV,true),h2=halfAvg(roV,false);
+    const diff=+(h2-h1).toFixed(2);
+
+    rows.push({cat:'roas',obs:`Best ROAS period`,detail:lbl(maxRO[0]),val:roV[maxRO[1]].toFixed(2)+'x',dir:'neu'});
+    rows.push({cat:'roas',obs:`Periods at or above break-even (1×)`,detail:`${aboveBreak} of ${roK.length} ${gran} buckets`,val:pct(aboveBreak,roK.length)+'%',dir:aboveBreak/roK.length>=0.6?'up':'down'});
+    if(roK.length>=4) rows.push({cat:'roas',obs:`ROAS trend (first half → second half)`,detail:'period-over-period',val:(diff>=0?'+':'')+diff+'x',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── NEW vs REPEAT ── */
+  if(nrK.length){
+    const tNew=nrNew.reduce((a,b)=>a+b,0);
+    const tAll=tNew+nrRep.reduce((a,b)=>a+b,0);
+    const maxNew=nrK.reduce((m,k,i)=>nrPct[i]>nrPct[m[1]]?[k,i]:m,[nrK[0],0]);
+    const maxVol=nrK.reduce((m,k,i)=>(nrNew[i]+nrRep[i])>(nrNew[m[1]]+nrRep[m[1]])?[k,i]:m,[nrK[0],0]);
+    const h1=halfAvg(nrPct,true),h2=halfAvg(nrPct,false);
+    const diff=+(h2-h1).toFixed(1);
+
+    rows.push({cat:'buyers',obs:`Overall new buyer share`,detail:`${tNew} new of ${tAll} total purchases`,val:pct(tNew,tAll)+'%',dir:pct(tNew,tAll)>=50?'up':'neu'});
+    rows.push({cat:'buyers',obs:`Highest new-buyer period`,detail:lbl(maxNew[0]),val:nrPct[maxNew[1]].toFixed(1)+'%',dir:'neu'});
+    rows.push({cat:'buyers',obs:`Peak purchase volume period`,detail:lbl(maxVol[0]),val:(nrNew[maxVol[1]]+(nrRep[maxVol[1]]||0))+' purchases',dir:'neu'});
+    if(nrK.length>=4) rows.push({cat:'buyers',obs:`New-buyer ratio trend`,detail:'first half → second half',val:(diff>=0?'+':'')+diff+'pp',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── REVENUE MIX ── */
+  if(rvK.length){
+    const tG=rvG.reduce((a,b)=>a+b,0),tO=rvO.reduce((a,b)=>a+b,0),tT=tG+tO;
+    const totals=rvK.map((k,i)=>rvG[i]+rvO[i]);
+    const maxRev=rvK.reduce((m,k,i)=>totals[i]>totals[m[1]]?[k,i]:m,[rvK[0],0]);
+    const oPct=rvK.map((k,i)=>totals[i]>0?+(rvO[i]/totals[i]*100).toFixed(1):0);
+    const h1=halfAvg(oPct,true),h2=halfAvg(oPct,false);
+    const diff=+(h2-h1).toFixed(1);
+    const fmt=v=>v>=1e5?'₹'+(v/1000).toFixed(0)+'k':v>=1000?'₹'+(v/1000).toFixed(1)+'k':'₹'+v;
+
+    rows.push({cat:'rev',obs:`1:1 session revenue share`,detail:`${fmt(tO)} of ${fmt(tT)} total`,val:pct(tO,tT)+'%',dir:'neu'});
+    rows.push({cat:'rev',obs:`Peak revenue period`,detail:lbl(maxRev[0]),val:fmt(totals[maxRev[1]]),dir:'neu'});
+    if(rvK.length>=4) rows.push({cat:'rev',obs:`1:1 share trend`,detail:'first half → second half',val:(diff>=0?'+':'')+diff+'pp',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── PURCHASE SOURCE ── */
+  if(srK.length){
+    const totByCat=srcCats.map(c=>srK.reduce((s,k)=>s+(srM[k][c]||0),0));
+    const grand=totByCat.reduce((a,b)=>a+b,0);
+    const ranked=srcCats.map((c,i)=>({c,v:totByCat[i]})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+    const top3=ranked.slice(0,3).map(x=>`${x.c} ${pct(x.v,grand)}%`).join(' · ');
+    const directV=totByCat[srcCats.indexOf('Direct')]||0;
+
+    rows.push({cat:'src',obs:`Top source channel`,detail:`${pct(ranked[0]?.v||0,grand)}% of period purchases`,val:ranked[0]?.c||'—',dir:'neu'});
+    rows.push({cat:'src',obs:`Top 3 channels`,detail:top3,val:'',dir:'neu'});
+    rows.push({cat:'src',obs:`Self-initiated / Direct purchases`,detail:`${directV} purchases`,val:pct(directV,grand)+'%',dir:'neu'});
+  }
+
+  /* render */
+  const sections=[
+    {key:'cr',    label:'Conversion Rate'},
+    {key:'roas',  label:'ROAS'},
+    {key:'buyers',label:'New vs Repeat Buyers'},
+    {key:'rev',   label:'Revenue Mix'},
+    {key:'src',   label:'Purchase Source'},
+  ];
+  let html='';
+  sections.forEach(({key,label})=>{
+    const sec=rows.filter(r=>r.cat===key);
+    if(!sec.length)return;
+    html+=`<div class="insights-section">
+      <div class="insights-section-title">${label}</div>
+      <table class="insights-table">
+        <thead><tr><th style="width:110px">metric</th><th>observation</th><th style="width:180px">detail</th><th style="width:100px;text-align:right">value</th></tr></thead>
+        <tbody>`;
+    sec.forEach(r=>{
+      const arrow=r.dir==='up'?' ↑':r.dir==='down'?' ↓':'';
+      html+=`<tr>
+        <td><span class="ins-metric ${r.cat}">${label.split(' ')[0]}</span></td>
+        <td class="ins-obs">${r.obs}</td>
+        <td class="ins-detail">${r.detail}</td>
+        <td class="ins-value ${r.dir}">${r.val}${arrow?`<span class="ins-arrow">${arrow}</span>`:''}
+        </td>
+      </tr>`;
+    });
+    html+='</tbody></table></div>';
+  });
+  document.getElementById('ins-body').innerHTML=html;
+}
 
 render();
 </script>
