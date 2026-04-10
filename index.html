@@ -388,6 +388,45 @@
   @media(max-width:600px){ #tab-report td,#tab-report th { padding:6px; font-size:12px; } }
 
   /* ── compare tab ── */
+  .compare-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .compare-presets-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-right: 4px;
+  }
+  .preset-btn {
+    font-size: 11px;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border-md);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .preset-btn:hover { background: var(--bg-secondary); color: var(--text); }
+  .preset-btn.preset-util {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding-left: 4px; padding-right: 4px;
+  }
+  .preset-divider {
+    width: 0.5px; height: 16px;
+    background: var(--border-md);
+    margin: 0 2px;
+  }
   .compare-toggles {
     display: flex;
     flex-wrap: wrap;
@@ -711,6 +750,7 @@
 
   <div id="tab-compare" style="display:none">
     <p class="compare-note">All series normalised 0 → 1 (min-max within selected window). Hover for real values.</p>
+    <div class="compare-presets" id="cmp-presets"></div>
     <div class="compare-toggles" id="cmp-toggles"></div>
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-wrap" style="height:460px"><canvas id="c-compare" role="img" aria-label="Normalised metric comparison">Compare chart</canvas></div>
@@ -888,9 +928,70 @@ function render(){
 
 /* ── compare chart ─────────────────────────────────────────── */
 const cmpVisible={};
+const CMP_PRESETS=[
+  {label:'Revenue',    keys:['Total revenue','1:1 rev share','Total purchases']},
+  {label:'Funnel',     keys:['Conversion Rate','New buyer %','Total purchases']},
+  {label:'Paid',       keys:['ROAS','Paid %','Conversion Rate']},
+  {label:'Channels',   keys:['Direct %','Paid %']},
+  {label:'Efficiency', keys:['ROAS','Conversion Rate','1:1 rev share']},
+];
+
+function applyPreset(seriesLabels,allSeries){
+  const set=new Set(seriesLabels);
+  allSeries.forEach(s=>{cmpVisible[s.label]=set.has(s.label);});
+  refreshCmpToggles(allSeries);
+  if(charts['c-compare']){
+    allSeries.forEach((s,i)=>charts['c-compare'].setDatasetVisibility(i,cmpVisible[s.label]));
+    charts['c-compare'].update();
+  }
+}
+
+function refreshCmpToggles(series){
+  document.querySelectorAll('#cmp-toggles .cmp-toggle').forEach((btn,i)=>{
+    const on=cmpVisible[series[i].label];
+    btn.classList.toggle('on',on);
+    btn.classList.toggle('off',!on);
+  });
+}
+
 function buildCompareChart(keys,labels,series){
   // init visibility state (default all on)
   series.forEach(s=>{if(cmpVisible[s.label]===undefined)cmpVisible[s.label]=true;});
+
+  // preset buttons
+  const presetWrap=document.getElementById('cmp-presets');
+  if(presetWrap.innerHTML===''){  // only build once
+    const lbl=document.createElement('span');
+    lbl.className='compare-presets-label';
+    lbl.textContent='Quick select';
+    presetWrap.appendChild(lbl);
+    CMP_PRESETS.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.className='preset-btn';
+      btn.textContent=p.label;
+      btn.onclick=()=>applyPreset(p.keys,series);
+      presetWrap.appendChild(btn);
+    });
+    const div=document.createElement('span');
+    div.className='preset-divider';
+    presetWrap.appendChild(div);
+    [{t:'All',fn:()=>applyPreset(series.map(s=>s.label),series)},
+     {t:'None',fn:()=>applyPreset([],series)}
+    ].forEach(({t,fn})=>{
+      const btn=document.createElement('button');
+      btn.className='preset-btn preset-util';
+      btn.textContent=t;
+      btn.onclick=fn;
+      presetWrap.appendChild(btn);
+    });
+  } else {
+    // update onclick closures so they reference the latest series after re-render
+    const btns=presetWrap.querySelectorAll('.preset-btn:not(.preset-util)');
+    CMP_PRESETS.forEach((p,i)=>{btns[i].onclick=()=>applyPreset(p.keys,series);});
+    const utils=presetWrap.querySelectorAll('.preset-util');
+    utils[0].onclick=()=>applyPreset(series.map(s=>s.label),series);
+    utils[1].onclick=()=>applyPreset([],series);
+  }
 
   // toggle buttons
   const wrap=document.getElementById('cmp-toggles');
