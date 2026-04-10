@@ -755,6 +755,101 @@
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-wrap" style="height:460px"><canvas id="c-compare" role="img" aria-label="Normalised metric comparison">Compare chart</canvas></div>
     </div>
+
+    <div style="margin-top:28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start;">
+
+      <!-- table 1: metric definitions -->
+      <div>
+        <div class="insights-section-title" style="margin-bottom:8px">Metric definitions</div>
+        <table class="insights-table">
+          <thead><tr><th style="width:38%">Metric</th><th>Definition</th><th style="width:22%">Unit / source</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="cmp-dot" style="background:#378ADD;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Conversion Rate</strong></td>
+              <td>Share of app page-views that result in a completed purchase. Averaged within each time bucket.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · CR_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#1D9E75;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>ROAS</strong></td>
+              <td>Return on Ad Spend — revenue generated per ₹1 of paid ad spend. Outliers above 20× excluded.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">× · ROAS_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#534AB7;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>New buyer %</strong></td>
+              <td>First-time buyers as a share of total purchases in the bucket. High = healthy top-of-funnel.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · NR_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#D85A30;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>1:1 rev share</strong></td>
+              <td>1:1 (personal) session revenue as a % of total revenue (group + 1:1). Tracks product-mix shift.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · REV_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#BA7517;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Total purchases</strong></td>
+              <td>Raw count of all purchases (new + repeat) in the bucket. Proxy for overall demand volume.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">count · NR_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#0F6E56;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Total revenue</strong></td>
+              <td>Sum of group + 1:1 session revenue in the bucket. Absolute ₹ value before normalisation.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">₹ · REV_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#D4537E;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Direct %</strong></td>
+              <td>Self-initiated / direct purchases as a % of all attributed purchases. Organic intent signal.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · SRC_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#888780;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Paid %</strong></td>
+              <td>Purchases attributed to paid ad channels as a % of all attributed purchases.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · SRC_RAW</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- table 2: preset combinations -->
+      <div>
+        <div class="insights-section-title" style="margin-bottom:8px">Click to select a view</div>
+        <table class="insights-table" id="cmp-preset-table">
+          <thead><tr><th style="width:28%">View</th><th>Metrics included</th><th style="width:20%;text-align:center">Apply</th></tr></thead>
+          <tbody>
+            <tr class="preset-row" data-preset="Revenue">
+              <td><strong>Revenue</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Total revenue · 1:1 rev share · Total purchases</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Revenue')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Funnel">
+              <td><strong>Funnel</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Conversion Rate · New buyer % · Total purchases</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Funnel')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Paid">
+              <td><strong>Paid</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">ROAS · Paid % · Conversion Rate</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Paid')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Channels">
+              <td><strong>Channels</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Direct % · Paid %</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Channels')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Efficiency">
+              <td><strong>Efficiency</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">ROAS · Conversion Rate · 1:1 rev share</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Efficiency')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="__all">
+              <td><strong>All metrics</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Every line on the chart</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('__all')">Select</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--text-tertiary);margin-top:8px">Selecting a view also highlights it in the quick-select row above the chart.</p>
+      </div>
+
+    </div>
   </div><!-- /tab-compare -->
 
   <div class="footer">SoulSensei iOS · data Oct 2025 – Apr 2026 · built with Chart.js</div>
@@ -928,6 +1023,7 @@ function render(){
 
 /* ── compare chart ─────────────────────────────────────────── */
 const cmpVisible={};
+let _cmpSeries=[];
 const CMP_PRESETS=[
   {label:'Revenue',    keys:['Total revenue','1:1 rev share','Total purchases']},
   {label:'Funnel',     keys:['Conversion Rate','New buyer %','Total purchases']},
@@ -936,13 +1032,31 @@ const CMP_PRESETS=[
   {label:'Efficiency', keys:['ROAS','Conversion Rate','1:1 rev share']},
 ];
 
-function applyPreset(seriesLabels,allSeries){
+function applyPreset(seriesLabels,allSeries,presetName){
   const set=new Set(seriesLabels);
   allSeries.forEach(s=>{cmpVisible[s.label]=set.has(s.label);});
   refreshCmpToggles(allSeries);
   if(charts['c-compare']){
     allSeries.forEach((s,i)=>charts['c-compare'].setDatasetVisibility(i,cmpVisible[s.label]));
     charts['c-compare'].update();
+  }
+  // highlight active row in the preset table
+  document.querySelectorAll('#cmp-preset-table .preset-row').forEach(r=>{
+    const active=presetName&&r.dataset.preset===presetName;
+    r.style.background=active?'var(--bg-secondary)':'';
+  });
+  // scroll chart into view smoothly
+  const chart=document.getElementById('c-compare');
+  if(chart)chart.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function applyPresetByName(name){
+  if(!_cmpSeries.length)return;
+  if(name==='__all'){
+    applyPreset(_cmpSeries.map(s=>s.label),_cmpSeries,'__all');
+  } else {
+    const p=CMP_PRESETS.find(x=>x.label===name);
+    if(p)applyPreset(p.keys,_cmpSeries,name);
   }
 }
 
@@ -955,6 +1069,7 @@ function refreshCmpToggles(series){
 }
 
 function buildCompareChart(keys,labels,series){
+  _cmpSeries=series;
   // init visibility state (default all on)
   series.forEach(s=>{if(cmpVisible[s.label]===undefined)cmpVisible[s.label]=true;});
 
@@ -969,14 +1084,14 @@ function buildCompareChart(keys,labels,series){
       const btn=document.createElement('button');
       btn.className='preset-btn';
       btn.textContent=p.label;
-      btn.onclick=()=>applyPreset(p.keys,series);
+      btn.onclick=()=>applyPreset(p.keys,series,p.label);
       presetWrap.appendChild(btn);
     });
     const div=document.createElement('span');
     div.className='preset-divider';
     presetWrap.appendChild(div);
-    [{t:'All',fn:()=>applyPreset(series.map(s=>s.label),series)},
-     {t:'None',fn:()=>applyPreset([],series)}
+    [{t:'All',fn:()=>applyPreset(series.map(s=>s.label),series,'__all')},
+     {t:'None',fn:()=>applyPreset([],series,null)}
     ].forEach(({t,fn})=>{
       const btn=document.createElement('button');
       btn.className='preset-btn preset-util';
@@ -987,10 +1102,10 @@ function buildCompareChart(keys,labels,series){
   } else {
     // update onclick closures so they reference the latest series after re-render
     const btns=presetWrap.querySelectorAll('.preset-btn:not(.preset-util)');
-    CMP_PRESETS.forEach((p,i)=>{btns[i].onclick=()=>applyPreset(p.keys,series);});
+    CMP_PRESETS.forEach((p,i)=>{btns[i].onclick=()=>applyPreset(p.keys,series,p.label);});
     const utils=presetWrap.querySelectorAll('.preset-util');
-    utils[0].onclick=()=>applyPreset(series.map(s=>s.label),series);
-    utils[1].onclick=()=>applyPreset([],series);
+    utils[0].onclick=()=>applyPreset(series.map(s=>s.label),series,'__all');
+    utils[1].onclick=()=>applyPreset([],series,null);
   }
 
   // toggle buttons
