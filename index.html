@@ -386,6 +386,44 @@
   #tab-report tr:last-child td { border-bottom:none; }
   #tab-report tbody tr:hover { background:var(--bg-secondary); }
   @media(max-width:600px){ #tab-report td,#tab-report th { padding:6px; font-size:12px; } }
+
+  /* ── compare tab ── */
+  .compare-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cmp-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid transparent;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    transition: opacity 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .cmp-toggle.on {
+    background: var(--bg-card);
+    color: var(--text);
+  }
+  .cmp-toggle.off { opacity: 0.4; }
+  .cmp-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .compare-note {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
 </style>
 </head>
 <body>
@@ -420,6 +458,7 @@
     <button class="tab-btn active" data-tab="charts" onclick="switchTab('charts')">Charts</button>
     <button class="tab-btn" data-tab="insights" onclick="switchTab('insights')">Insights</button>
     <button class="tab-btn" data-tab="report" onclick="switchTab('report')">Full Report</button>
+    <button class="tab-btn" data-tab="compare" onclick="switchTab('compare')">Compare</button>
   </nav>
 
   <div id="tab-charts">
@@ -670,6 +709,14 @@
 </div>
   </div><!-- /tab-report -->
 
+  <div id="tab-compare" style="display:none">
+    <p class="compare-note">All series normalised 0 → 1 (min-max within selected window). Hover for real values.</p>
+    <div class="compare-toggles" id="cmp-toggles"></div>
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-wrap" style="height:460px"><canvas id="c-compare" role="img" aria-label="Normalised metric comparison">Compare chart</canvas></div>
+    </div>
+  </div><!-- /tab-compare -->
+
   <div class="footer">SoulSensei iOS · data Oct 2025 – Apr 2026 · built with Chart.js</div>
 
 </div>
@@ -792,6 +839,138 @@ function render(){
   });
 
   buildInsights({crK,crV,roK,roV,nrK,nrNew,nrRep,nrPct,rvK,rvG,rvO,srK,srM});
+
+  /* ── compare chart data ── */
+  // Build a unified time axis: union of all bucket keys, sorted chronologically
+  const allKeysSet=new Set([...crK,...roK,...nrK,...rvK,...srK]);
+  // gather first-date for keys from whichever dataset has them
+  const allFirstDate={};
+  [{keys:crK,fd:buildBuckets(CR_RAW,()=>{},gran,from,to).firstDate},
+   {keys:roK,fd:buildBuckets(ROAS_RAW.filter(r=>r[1]!==null&&r[1]<20),()=>{},gran,from,to).firstDate},
+   {keys:nrK,fd:buildBuckets(NR_RAW,()=>{},gran,from,to).firstDate},
+   {keys:rvK,fd:buildBuckets(REV_RAW,()=>{},gran,from,to).firstDate},
+   {keys:srK,fd:buildBuckets(SRC_RAW,()=>{},gran,from,to).firstDate},
+  ].forEach(({keys,fd})=>keys.forEach(k=>{if(!allFirstDate[k])allFirstDate[k]=fd[k];}));
+  const cmpKeys=[...allKeysSet].sort((a,b)=>allFirstDate[a]-allFirstDate[b]);
+  const cmpLbl=cmpKeys.map(k=>getBucketLabel(k,gran));
+
+  // helper: min-max normalise an array, return {norm, min, max}
+  function minmax(arr){
+    const valid=arr.filter(v=>v!=null&&!isNaN(v));
+    const mn=Math.min(...valid),mx=Math.max(...valid);
+    const rng=mx-mn||1;
+    return{norm:arr.map(v=>v==null?null:+((v-mn)/rng).toFixed(4)),min:mn,max:mx};
+  }
+
+  // raw series mapped onto cmpKeys (null if bucket missing)
+  const rawCR   =cmpKeys.map(k=>crM[k] ?+(crM[k].s/crM[k].n*100).toFixed(3):null);
+  const rawRO   =cmpKeys.map(k=>roM[k] ?+(roM[k].s/roM[k].n).toFixed(2)     :null);
+  const rawNRpct=cmpKeys.map(k=>nrM[k] ?+(nrM[k].n/(nrM[k].t||1)*100).toFixed(1):null);
+  const rawRVpct=cmpKeys.map(k=>{if(!rvM[k])return null;const t=(rvM[k].g||0)+(rvM[k].o||0);return t?+(rvM[k].o/t*100).toFixed(1):null;});
+  const rawPurch=cmpKeys.map(k=>nrM[k]?(nrM[k].t||0):null);
+  const rawRev  =cmpKeys.map(k=>rvM[k]?+((rvM[k].g||0)+(rvM[k].o||0)).toFixed(0):null);
+  const rawDirPct=cmpKeys.map(k=>{if(!srM[k])return null;const t=srcCats.reduce((s,c)=>s+(srM[k][c]||0),0);return t?+(srM[k]['Direct']/t*100).toFixed(1):null;});
+  const rawPaidPct=cmpKeys.map(k=>{if(!srM[k])return null;const t=srcCats.reduce((s,c)=>s+(srM[k][c]||0),0);return t?+((srM[k]['Paid']||0)/t*100).toFixed(1):null;});
+
+  const cmpSeries=[
+    {label:'Conversion Rate', color:'#378ADD', unit:'%',  raw:rawCR,    fmt:v=>v.toFixed(2)+'%'},
+    {label:'ROAS',            color:'#1D9E75', unit:'×',  raw:rawRO,    fmt:v=>v.toFixed(2)+'×'},
+    {label:'New buyer %',     color:'#534AB7', unit:'%',  raw:rawNRpct, fmt:v=>v.toFixed(1)+'%'},
+    {label:'1:1 rev share',   color:'#D85A30', unit:'%',  raw:rawRVpct, fmt:v=>v.toFixed(1)+'%'},
+    {label:'Total purchases', color:'#BA7517', unit:'',   raw:rawPurch, fmt:v=>Math.round(v)+' purchases'},
+    {label:'Total revenue',   color:'#0F6E56', unit:'₹',  raw:rawRev,   fmt:v=>v>=1000?'₹'+(v/1000).toFixed(1)+'k':'₹'+Math.round(v)},
+    {label:'Direct %',        color:'#D4537E', unit:'%',  raw:rawDirPct,fmt:v=>v.toFixed(1)+'%'},
+    {label:'Paid %',          color:'#888780', unit:'%',  raw:rawPaidPct,fmt:v=>v.toFixed(1)+'%'},
+  ].map(s=>({...s,...minmax(s.raw)}));
+
+  buildCompareChart(cmpKeys,cmpLbl,cmpSeries);
+}
+
+/* ── compare chart ─────────────────────────────────────────── */
+const cmpVisible={};
+function buildCompareChart(keys,labels,series){
+  // init visibility state (default all on)
+  series.forEach(s=>{if(cmpVisible[s.label]===undefined)cmpVisible[s.label]=true;});
+
+  // toggle buttons
+  const wrap=document.getElementById('cmp-toggles');
+  wrap.innerHTML='';
+  series.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    btn.className='cmp-toggle '+(cmpVisible[s.label]?'on':'off');
+    btn.innerHTML=`<span class="cmp-dot" style="background:${s.color}"></span>${s.label}`;
+    btn.onclick=()=>{
+      cmpVisible[s.label]=!cmpVisible[s.label];
+      btn.classList.toggle('on',cmpVisible[s.label]);
+      btn.classList.toggle('off',!cmpVisible[s.label]);
+      if(charts['c-compare']){
+        charts['c-compare'].setDatasetVisibility(i,cmpVisible[s.label]);
+        charts['c-compare'].update();
+      }
+    };
+    wrap.appendChild(btn);
+  });
+
+  // build datasets
+  const datasets=series.map((s,i)=>({
+    label:s.label,
+    data:s.norm,
+    borderColor:s.color,
+    backgroundColor:s.color+'22',
+    borderWidth:1.5,
+    pointRadius:0,
+    pointHoverRadius:4,
+    tension:0.3,
+    fill:false,
+    hidden:!cmpVisible[s.label],
+    // stash for tooltip
+    _raw:s.raw,
+    _fmt:s.fmt,
+    _min:s.min,
+    _max:s.max,
+  }));
+
+  if(charts['c-compare'])charts['c-compare'].destroy();
+  const ctx=document.getElementById('c-compare');
+  if(!ctx)return;
+  charts['c-compare']=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:items=>items[0]?.label||'',
+            label:item=>{
+              const ds=item.chart.data.datasets[item.datasetIndex];
+              const raw=ds._raw[item.dataIndex];
+              if(raw==null)return null;
+              return ' '+ds.label+': '+ds._fmt(raw);
+            },
+          },
+          filter:item=>{
+            const ds=item.chart.data.datasets[item.datasetIndex];
+            return ds._raw[item.dataIndex]!=null;
+          },
+        },
+      },
+      scales:{
+        x:{
+          ticks:{font:{size:10},color:'#888780',maxTicksLimit:18,maxRotation:0},
+          grid:{display:false},
+        },
+        y:{
+          min:0,max:1,
+          ticks:{font:{size:10},color:'#888780',callback:v=>v===0?'min':v===1?'max':v===0.5?'mid':''},
+          grid:{color:'rgba(136,135,128,0.1)'},
+        },
+      },
+    },
+  });
 }
 
 function setGranularity(g){
@@ -805,7 +984,7 @@ function applyRange(){render();}
 
 /* ── tab switching ─────────────────────────────────────────── */
 function _doSwitchTab(tab){
-  ['charts','insights','report'].forEach(t=>
+  ['charts','insights','report','compare'].forEach(t=>
     document.getElementById('tab-'+t).style.display=tab===t?'':'none'
   );
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
