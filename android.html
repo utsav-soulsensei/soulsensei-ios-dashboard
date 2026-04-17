@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulSensei — Android Analytics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f5f4f0;
+    --bg-card: #ffffff;
+    --text: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-tertiary: #888780;
+    --border: rgba(0,0,0,0.1);
+    --border-md: rgba(0,0,0,0.2);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --blue: #378ADD;
+    --teal: #1D9E75;
+    --purple: #534AB7;
+    --coral: #D85A30;
+    --amber: #BA7517;
+    --gray: #888780;
+    --green: #0F6E56;
+    --pink: #D4537E;
+    --light-gray: #B4B2A9;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --bg-secondary: #242422;
+      --bg-card: #1e1e1c;
+      --text: #f0ede8;
+      --text-secondary: #b4b2a9;
+      --text-tertiary: #888780;
+      --border: rgba(255,255,255,0.1);
+      --border-md: rgba(255,255,255,0.2);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .header-left p {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border);
+    margin-top: 4px;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .controls label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .controls input[type="date"] {
+    font-size: 12px;
+    padding: 5px 8px;
+    height: 32px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    color: var(--text);
+    outline: none;
+  }
+
+  .controls input[type="date"]:focus {
+    border-color: var(--blue);
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 5px 14px;
+    height: 32px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn:hover { background: var(--bg-secondary); }
+  .btn:active { transform: scale(0.98); }
+
+  .pill-group {
+    display: inline-flex;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .pill-group button {
+    background: transparent;
+    border: none;
+    padding: 5px 13px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background 0.15s, color 0.15s;
+    height: 32px;
+  }
+
+  .pill-group button:not(:last-child) {
+    border-right: 0.5px solid var(--border);
+  }
+
+  .pill-group button.active {
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .kpi-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 0.875rem 1rem;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .kpi-value {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .kpi-sub {
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  .charts-grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .chart-card {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+  }
+
+  .chart-card.full {
+    margin-bottom: 0;
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: 0.03em;
+    text-transform: lowercase;
+  }
+
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-dash {
+    width: 14px;
+    height: 2px;
+    flex-shrink: 0;
+  }
+
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .divider {
+    height: 0.5px;
+    background: var(--border);
+    margin: 1.25rem 0;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    .kpi-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .charts-grid-2 { grid-template-columns: minmax(0,1fr); }
+    .controls { gap: 6px; }
+    .header { flex-direction: column; }
+  }
+
+  /* view transitions */
+  @supports (view-transition-name: none) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation-duration: 0.25s;
+      animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+    }
+  }
+
+  /* tab nav */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1.25rem;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    margin-bottom: -0.5px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--blue);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text-secondary); }
+
+  /* insights table */
+  .insights-section { margin-bottom: 1.5rem; }
+  .insights-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    padding: 0 2px;
+  }
+  .insights-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    font-size: 12px;
+  }
+  .insights-table thead th {
+    background: var(--bg-secondary);
+    color: var(--text-tertiary);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 12px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .insights-table tbody tr {
+    border-bottom: 0.5px solid var(--border);
+    transition: background 0.1s;
+  }
+  .insights-table tbody tr:last-child { border-bottom: none; }
+  .insights-table tbody tr:hover { background: var(--bg-secondary); }
+  .insights-table td { padding: 9px 12px; vertical-align: middle; }
+  .ins-metric {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .ins-metric.cr    { background: rgba(55,138,221,0.12);  color: #378ADD; }
+  .ins-metric.roas  { background: rgba(29,158,117,0.12);  color: #1D9E75; }
+  .ins-metric.buyers{ background: rgba(83,74,183,0.12);   color: #534AB7; }
+  .ins-metric.rev   { background: rgba(216,90,48,0.12);   color: #D85A30; }
+  .ins-metric.src   { background: rgba(186,117,23,0.12);  color: #BA7517; }
+  .ins-obs { color: var(--text); line-height: 1.4; }
+  .ins-detail { color: var(--text-secondary); font-size: 11px; }
+  .ins-value {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .ins-value.up   { color: #1D9E75; }
+  .ins-value.down { color: #D85A30; }
+  .ins-value.neu  { color: var(--text-secondary); }
+  .ins-arrow { font-size: 10px; margin-left: 2px; }
+
+  /* ── report tab: variable bridge + scoped table styles ── */
+  #tab-report {
+    --color-text-primary: var(--text);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-tertiary: var(--text-tertiary);
+    --color-border-tertiary: var(--border);
+    --color-background-secondary: var(--bg-secondary);
+  }
+  #tab-report table { width:100%; border-collapse:collapse; font-size:13px; border:0.5px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+  #tab-report th { font-size:11px; font-weight:500; color:var(--text-tertiary); text-align:left; padding:7px 12px; background:var(--bg-secondary); border-bottom:0.5px solid var(--border); letter-spacing:0.03em; }
+  #tab-report td { padding:9px 12px; border-bottom:0.5px solid var(--border); color:var(--text); vertical-align:top; line-height:1.5; }
+  #tab-report tr:last-child td { border-bottom:none; }
+  #tab-report tbody tr:hover { background:var(--bg-secondary); }
+  @media(max-width:600px){ #tab-report td,#tab-report th { padding:6px; font-size:12px; } }
+
+  /* ── compare tab ── */
+  .compare-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .compare-presets-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-right: 4px;
+  }
+  .preset-btn {
+    font-size: 11px;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border-md);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .preset-btn:hover { background: var(--bg-secondary); color: var(--text); }
+  .preset-btn.preset-util {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding-left: 4px; padding-right: 4px;
+  }
+  .preset-divider {
+    width: 0.5px; height: 16px;
+    background: var(--border-md);
+    margin: 0 2px;
+  }
+  .compare-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cmp-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid transparent;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    transition: opacity 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .cmp-toggle.on {
+    background: var(--bg-card);
+    color: var(--text);
+  }
+  .cmp-toggle.off { opacity: 0.4; }
+  .cmp-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .compare-note {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Android analytics dashboard</h1>
+      <p>SoulSensei · Oct 2025 – Apr 2026</p>
+      <span class="badge">Android only</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+      <div class="controls">
+        <label>From</label>
+        <input type="date" id="dateFrom" value="2025-10-01">
+        <label>to</label>
+        <input type="date" id="dateTo" value="2026-04-17">
+        <button class="btn" onclick="applyRange()">Apply</button>
+      </div>
+      <div class="controls" style="justify-content:flex-end;">
+        <label>Granularity</label>
+        <div class="pill-group">
+          <button id="g-daily" class="active" onclick="setGranularity('daily')">Daily</button>
+          <button id="g-weekly" onclick="setGranularity('weekly')">Weekly</button>
+          <button id="g-monthly" onclick="setGranularity('monthly')">Monthly</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="charts" onclick="switchTab('charts')">Charts</button>
+    <button class="tab-btn" data-tab="insights" onclick="switchTab('insights')">Insights</button>
+    <button class="tab-btn" data-tab="report" onclick="switchTab('report')">Full Report</button>
+    <button class="tab-btn" data-tab="compare" onclick="switchTab('compare')">Compare</button>
+  </nav>
+
+  <div id="tab-charts">
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Avg conversion rate</div>
+      <div class="kpi-value" id="k-cr">—</div>
+      <div class="kpi-sub">page view → register</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg ROAS</div>
+      <div class="kpi-value" id="k-roas">—</div>
+      <div class="kpi-sub">excl. outliers</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">New buyer %</div>
+      <div class="kpi-value" id="k-new">—</div>
+      <div class="kpi-sub">of total purchases</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">1:1 revenue share</div>
+      <div class="kpi-value" id="k-1on1">—</div>
+      <div class="kpi-sub">vs group sessions</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Self / direct</div>
+      <div class="kpi-value" id="k-direct">—</div>
+      <div class="kpi-sub">of purchase source</div>
+    </div>
+  </div>
+
+  <div class="charts-grid-2">
+    <div class="chart-card">
+      <div class="card-title">conversion rate</div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div>Daily CR</div>
+      </div>
+      <div class="chart-wrap" style="height:190px"><canvas id="c-cr" role="img" aria-label="Conversion rate over time">CR chart</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">ROAS</div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>ROAS</div>
+        <div class="legend-item"><div class="legend-dash" style="background:repeating-linear-gradient(90deg,#888780 0,#888780 4px,transparent 4px,transparent 7px)"></div>Break-even 1x</div>
+      </div>
+      <div class="chart-wrap" style="height:170px"><canvas id="c-roas" role="img" aria-label="ROAS over time">ROAS chart</canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-grid-2">
+    <div class="chart-card">
+      <div class="card-title">new vs repeat purchases</div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(55,138,221,0.7)"></div>New</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(216,90,48,0.65)"></div>Repeat</div>
+        <div class="legend-item"><div class="legend-dash" style="background:#534AB7;height:2px"></div>New % (right axis)</div>
+      </div>
+      <div class="chart-wrap" style="height:170px"><canvas id="c-nr" role="img" aria-label="New vs repeat purchases">NR chart</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">group vs 1:1 revenue</div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(29,158,117,0.7)"></div>Group</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(83,74,183,0.65)"></div>1:1</div>
+        <div class="legend-item"><div class="legend-dash" style="background:#D85A30;height:2px"></div>1:1 % (right axis)</div>
+      </div>
+      <div class="chart-wrap" style="height:170px"><canvas id="c-rev" role="img" aria-label="Group vs 1:1 revenue">Revenue chart</canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-grid-2" style="margin-top:12px;">
+    <div class="chart-card">
+      <div class="card-title">purchase source mix</div>
+      <div class="legend-row" id="src-legend"></div>
+      <div class="chart-wrap" style="height:170px"><canvas id="c-src" role="img" aria-label="Purchase source breakdown">Source chart</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">purchase source — period total</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="c-src-pie" role="img" aria-label="Purchase source pie chart">Source pie chart</canvas></div>
+    </div>
+  </div>
+
+  </div><!-- /tab-charts -->
+
+  <div id="tab-insights" style="display:none">
+    <div id="ins-body"></div>
+  </div><!-- /tab-insights -->
+
+  <div id="tab-report" style="display:none">
+<div class="ins-wrap">
+
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-bottom:1.5rem;">
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Oct rev</div>
+    <div style="font-size:14px;font-weight:500;">₹2.8L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹9.3k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Nov rev</div>
+    <div style="font-size:14px;font-weight:500;">₹3.9L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹12.9k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Dec rev</div>
+    <div style="font-size:14px;font-weight:500;">₹4.1L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹13.2k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Jan rev</div>
+    <div style="font-size:14px;font-weight:500;">₹4.4L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹14.1k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Feb rev</div>
+    <div style="font-size:14px;font-weight:500;">₹4.2L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹14.9k/day</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:8px;padding:.75rem;text-align:center;">
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px;">Mar rev</div>
+    <div style="font-size:14px;font-weight:500;">₹4.6L</div>
+    <div style="font-size:10px;color:var(--color-text-tertiary);">₹14.8k/day</div>
+  </div>
+  <div style="background:#E1F5EE;border-radius:8px;padding:.75rem;text-align:center;border:1px solid #9FE1CB;">
+    <div style="font-size:10px;color:#0F6E56;margin-bottom:4px;">Apr run rate</div>
+    <div style="font-size:14px;font-weight:500;color:#085041;">₹5.1L</div>
+    <div style="font-size:10px;color:#0F6E56;">₹16.8k/day</div>
+  </div>
+</div>
+
+<div class="ins-section">
+  <div class="ins-section-title">Positive signals</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">Metric</th>
+        <th style="width:22%">What the data shows</th>
+        <th style="width:22%">Scale / magnitude</th>
+        <th style="width:38%">So what</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-pos">Revenue</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Daily run rate</span></td>
+        <td>Apr daily average of ₹16.8k is the highest ever, marking steady monthly growth since October.</td>
+        <td class="num"><span class="arrow-nt">→ +81%</span> vs Oct (₹9.3k/day)<br><span class="arrow-up">↑ +13%</span> vs Mar (₹14.8k/day)<br>Apr run rate = ₹5.1L/month</td>
+        <td>Unlike iOS, Android revenue is experiencing consistent, month-over-month growth rather than choppy peaks and troughs. The core monetisation engine here is deeply stable.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Volume</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Group sessions</span></td>
+        <td>Group revenue dominates Android (73% share in Apr), completely replacing the winter dependency on 1:1 sessions (53% share in Feb).</td>
+        <td class="num">Feb 1:1 mix: 53.6%<br>Apr 1:1 mix: 26.8%<br><span class="arrow-up">↑ Group dominance</span></td>
+        <td>This is highly scalable. While iOS is reliant on expensive 1:1 capacity, Android users are scaling the core group features. Focus product efforts on group engagement for Android users.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Acquisition</span><br><span style="font-size:12px;color:var(--color-text-secondary);">New buyer %</span></td>
+        <td>New buyers make up an incredibly stable 50-55% share month-over-month consistently.</td>
+        <td class="num">Oct: 50.6%<br>Jan: 55.4%<br>Apr: 50.8%</td>
+        <td>The platform has found an equilibrium. It successfully acquires fresh cohorts while retaining exactly enough repeat buyers to build layered LTV. Maintain this 50/50 split natively.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Attribution</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Dark traffic</span></td>
+        <td>Only 28.0% of Android purchases are "undefined", compared to roughly ~67% on iOS. Tracking is working.</td>
+        <td class="num">Undefined: 28%<br>Tracked: 72%<br><span class="arrow-up">↑ High visibility</span></td>
+        <td>Because tracking is successful here, you can trust your channel mix on Android. Marketing capital deployed against Android campaigns can be measured and optimized successfully.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Owned channels</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Notifications</span></td>
+        <td>Push notifications drive a highly impactful 16.2% of all attributed traffic (double the impact of iOS).</td>
+        <td class="num">16.2% share of all purchases<br>Zero paid spend</td>
+        <td>Android users natively engage with system-level notifications more readily. This is a massively valuable wedge: lean extensively into targeted, zero-cost push messages.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="ins-section">
+  <div class="ins-section-title">Negative signals</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">Metric</th>
+        <th style="width:22%">What the data shows</th>
+        <th style="width:22%">Scale / magnitude</th>
+        <th style="width:38%">So what</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-neg">ROAS</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Collapse in efficiency</span></td>
+        <td>ROAS collapsed structurally from legendary levels (4.24x in Nov) directly down to functional unprofitability entirely (1.07x in Apr).</td>
+        <td class="num">Nov avg: 4.24x<br>Jan avg: 3.55x<br>Apr avg: 1.07x<br><span class="arrow-dn">↓ −74%</span> deterioration</td>
+        <td>Unlike iOS, which bounced back slightly, Android ROAS is in freefall over six consecutive months. What broke here? The creatives are suffering intense fatigue on Android channels specifically. Budget must be trimmed hard.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Conversion</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Low baseline</span></td>
+        <td>Average CR is currently 1.50% (April), remaining suppressed beneath October's 2.09% high. It remains stubbornly lower than iOS.</td>
+        <td class="num">Oct peak: 2.09%<br>Apr avg: 1.50%<br>iOS Apr: 2.16%<br><span class="arrow-dn">↓ −28%</span> vs baseline</td>
+        <td>For every 100 Android users acquired, you are converting 0.5 fewer natively, and ~0.6 fewer than iOS users today. The Android flow requires serious UX/performance auditing quickly.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Volume</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Purchase cadence</span></td>
+        <td>Despite record revenue, purchase volume in April is flatly averaging 10.7 purchases/day (vs 11-13 earlier in the year). Ticket size is compensating for lower counts.</td>
+        <td class="num">Jan count: 11.2/day<br>Apr count: 10.7/day<br><span class="arrow-dn">↓ Volume softening</span></td>
+        <td>Revenue growth driven exclusively by extracting higher ACV from an equal/smaller volume of buyers eventually hits a ceiling. Volume growth is required to compound.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="ins-section">
+  <div class="ins-section-title">Watch carefully</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">Metric</th>
+        <th style="width:22%">What the data shows</th>
+        <th style="width:22%">Scale / magnitude</th>
+        <th style="width:38%">So what</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-warn">Decoupling</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Platform divergence</span></td>
+        <td>Android and iOS metrics are moving completely opposite to each other. iOS is scaling 1:1, sinking in Group; Android is scaling Group, sinking in 1:1.</td>
+        <td class="num">iOS: 57% 1:1 mix<br>Android: 26% 1:1 mix</td>
+        <td>Your platform essentially operates two different businesses right now. The same global go-to-market plan will not work simultaneously for a high-ticket 1:1 iOS base, and a low ticket Group Android base.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Paid vs Organic</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Scaling dependency</span></td>
+        <td>With ROAS entering loss-making territory (< 1.5x) but overall revenue increasing, Android may be leaning heavily on organic brand searches rather than direct response.</td>
+        <td class="num">ROAS falling <br>Revenue rising</td>
+        <td>If paid completely turns off (due to poor ROAS), you need to know exactly how much of the ₹16.8k/day will organically survive. Test lower spend thresholds immediately.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+  </div><!-- /tab-report -->
+
+  <div id="tab-compare" style="display:none">
+    <p class="compare-note">All series normalised 0 → 1 (min-max within selected window). Hover for real values.</p>
+    <div class="compare-presets" id="cmp-presets"></div>
+    <div class="compare-toggles" id="cmp-toggles"></div>
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-wrap" style="height:460px"><canvas id="c-compare" role="img" aria-label="Normalised metric comparison">Compare chart</canvas></div>
+    </div>
+
+    <div style="margin-top:28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start;">
+
+      <!-- table 1: metric definitions -->
+      <div>
+        <div class="insights-section-title" style="margin-bottom:8px">Metric definitions</div>
+        <table class="insights-table">
+          <thead><tr><th style="width:38%">Metric</th><th>Definition</th><th style="width:22%">Unit / source</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="cmp-dot" style="background:#378ADD;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Conversion Rate</strong></td>
+              <td>Share of app page-views that result in a completed purchase. Averaged within each time bucket.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · CR_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#1D9E75;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>ROAS</strong></td>
+              <td>Return on Ad Spend — revenue generated per ₹1 of paid ad spend. Outliers above 20× excluded.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">× · ROAS_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#534AB7;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>New buyer %</strong></td>
+              <td>First-time buyers as a share of total purchases in the bucket. High = healthy top-of-funnel.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · NR_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#D85A30;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>1:1 rev share</strong></td>
+              <td>1:1 (personal) session revenue as a % of total revenue (group + 1:1). Tracks product-mix shift.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · REV_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#BA7517;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Total purchases</strong></td>
+              <td>Raw count of all purchases (new + repeat) in the bucket. Proxy for overall demand volume.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">count · NR_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#0F6E56;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Total revenue</strong></td>
+              <td>Sum of group + 1:1 session revenue in the bucket. Absolute ₹ value before normalisation.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">₹ · REV_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#D4537E;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Direct %</strong></td>
+              <td>Self-initiated / direct purchases as a % of all attributed purchases. Organic intent signal.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · SRC_RAW</td>
+            </tr>
+            <tr>
+              <td><span class="cmp-dot" style="background:#888780;display:inline-block;margin-right:6px;border-radius:2px"></span><strong>Paid %</strong></td>
+              <td>Purchases attributed to paid ad channels as a % of all attributed purchases.</td>
+              <td style="color:var(--text-tertiary);font-size:11px">% · SRC_RAW</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- table 2: preset combinations -->
+      <div>
+        <div class="insights-section-title" style="margin-bottom:8px">Click to select a view</div>
+        <table class="insights-table" id="cmp-preset-table">
+          <thead><tr><th style="width:28%">View</th><th>Metrics included</th><th style="width:20%;text-align:center">Apply</th></tr></thead>
+          <tbody>
+            <tr class="preset-row" data-preset="Revenue">
+              <td><strong>Revenue</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Total revenue · 1:1 rev share · Total purchases</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Revenue')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Funnel">
+              <td><strong>Funnel</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Conversion Rate · New buyer % · Total purchases</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Funnel')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Paid">
+              <td><strong>Paid</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">ROAS · Paid % · Conversion Rate</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Paid')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Channels">
+              <td><strong>Channels</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Direct % · Paid %</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Channels')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="Efficiency">
+              <td><strong>Efficiency</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">ROAS · Conversion Rate · 1:1 rev share</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('Efficiency')">Select</button></td>
+            </tr>
+            <tr class="preset-row" data-preset="__all">
+              <td><strong>All metrics</strong></td>
+              <td style="font-size:11px;color:var(--text-secondary)">Every line on the chart</td>
+              <td style="text-align:center"><button class="preset-btn" onclick="applyPresetByName('__all')">Select</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--text-tertiary);margin-top:8px">Selecting a view also highlights it in the quick-select row above the chart.</p>
+      </div>
+
+    </div>
+  </div><!-- /tab-compare -->
+
+  <div class="footer">SoulSensei Android · data Oct 2025 – Apr 2026 · built with Chart.js</div>
+
+</div>
+
+<script>
+const CR_RAW=[["Oct 1, 2025",0.026549],["Oct 2, 2025",0.039604],["Oct 3, 2025",0.029703],["Oct 4, 2025",0.04717],["Oct 5, 2025",0.007692],["Oct 6, 2025",0.033613],["Oct 7, 2025",0.009524],["Oct 8, 2025",0.019608],["Oct 9, 2025",0.0],["Oct 10, 2025",0.028777],["Oct 11, 2025",0.022556],["Oct 12, 2025",0.033058],["Oct 13, 2025",0.035503],["Oct 14, 2025",0.014925],["Oct 15, 2025",0.0],["Oct 16, 2025",0.026316],["Oct 17, 2025",0.006211],["Oct 18, 2025",0.0],["Oct 19, 2025",0.026144],["Oct 20, 2025",0.00813],["Oct 21, 2025",0.018405],["Oct 22, 2025",0.020513],["Oct 23, 2025",0.011494],["Oct 24, 2025",0.019084],["Oct 25, 2025",0.033019],["Oct 26, 2025",0.019763],["Oct 27, 2025",0.009091],["Oct 28, 2025",0.007812],["Oct 29, 2025",0.046575],["Oct 30, 2025",0.031034],["Oct 31, 2025",0.016461],["Nov 1, 2025",0.022556],["Nov 2, 2025",0.018382],["Nov 3, 2025",0.01087],["Nov 4, 2025",0.02924],["Nov 5, 2025",0.0],["Nov 6, 2025",0.01039],["Nov 7, 2025",0.010753],["Nov 8, 2025",0.014368],["Nov 9, 2025",0.027607],["Nov 10, 2025",0.025157],["Nov 11, 2025",0.028011],["Nov 12, 2025",0.007168],["Nov 13, 2025",0.012085],["Nov 14, 2025",0.019553],["Nov 15, 2025",0.037267],["Nov 16, 2025",0.024561],["Nov 17, 2025",0.021127],["Nov 18, 2025",0.027397],["Nov 19, 2025",0.027228],["Nov 20, 2025",0.014663],["Nov 21, 2025",0.01278],["Nov 22, 2025",0.035135],["Nov 23, 2025",0.007634],["Nov 24, 2025",0.015209],["Nov 25, 2025",0.01107],["Nov 26, 2025",0.022989],["Nov 27, 2025",0.006757],["Nov 28, 2025",0.012821],["Nov 29, 2025",0.010811],["Nov 30, 2025",0.016835],["Dec 1, 2025",0.0],["Dec 2, 2025",0.007009],["Dec 3, 2025",0.007833],["Dec 4, 2025",0.018519],["Dec 5, 2025",0.010791],["Dec 6, 2025",0.013793],["Dec 7, 2025",0.011538],["Dec 8, 2025",0.008824],["Dec 9, 2025",0.008451],["Dec 10, 2025",0.020173],["Dec 11, 2025",0.022727],["Dec 12, 2025",0.011019],["Dec 13, 2025",0.011019],["Dec 14, 2025",0.006098],["Dec 15, 2025",0.004819],["Dec 16, 2025",0.016908],["Dec 17, 2025",0.013793],["Dec 18, 2025",0.004484],["Dec 19, 2025",0.008065],["Dec 20, 2025",0.009036],["Dec 21, 2025",0.010309],["Dec 22, 2025",0.0125],["Dec 23, 2025",0.013405],["Dec 24, 2025",0.013514],["Dec 25, 2025",0.015831],["Dec 26, 2025",0.022624],["Dec 27, 2025",0.014403],["Dec 28, 2025",0.008065],["Dec 29, 2025",0.013917],["Dec 30, 2025",0.004202],["Dec 31, 2025",0.002283],["Jan 1, 2026",0.002681],["Jan 2, 2026",0.004264],["Jan 3, 2026",0.007042],["Jan 4, 2026",0.012448],["Jan 5, 2026",0.005964],["Jan 6, 2026",0.007326],["Jan 7, 2026",0.003745],["Jan 8, 2026",0.019231],["Jan 9, 2026",0.010823],["Jan 10, 2026",0.016355],["Jan 11, 2026",0.016981],["Jan 12, 2026",0.00753],["Jan 13, 2026",0.008475],["Jan 14, 2026",0.012324],["Jan 15, 2026",0.013831],["Jan 16, 2026",0.01626],["Jan 17, 2026",0.016245],["Jan 18, 2026",0.01232],["Jan 19, 2026",0.007752],["Jan 20, 2026",0.009524],["Jan 21, 2026",0.009569],["Jan 22, 2026",0.028846],["Jan 23, 2026",0.014085],["Jan 24, 2026",0.010363],["Jan 25, 2026",0.027248],["Jan 26, 2026",0.017794],["Jan 27, 2026",0.0125],["Jan 28, 2026",0.009317],["Jan 29, 2026",0.00885],["Jan 30, 2026",0.024615],["Jan 31, 2026",0.016129],["Feb 1, 2026",0.017544],["Feb 2, 2026",0.030043],["Feb 3, 2026",0.019048],["Feb 4, 2026",0.012097],["Feb 5, 2026",0.021097],["Feb 6, 2026",0.033175],["Feb 7, 2026",0.017167],["Feb 8, 2026",0.020747],["Feb 9, 2026",0.030405],["Feb 10, 2026",0.026515],["Feb 11, 2026",0.012308],["Feb 12, 2026",0.023179],["Feb 13, 2026",0.025478],["Feb 14, 2026",0.009259],["Feb 15, 2026",0.020408],["Feb 16, 2026",0.015054],["Feb 17, 2026",0.028777],["Feb 18, 2026",0.006006],["Feb 19, 2026",0.003802],["Feb 20, 2026",0.025974],["Feb 21, 2026",0.003876],["Feb 22, 2026",0.020921],["Feb 23, 2026",0.020202],["Feb 24, 2026",0.010067],["Feb 25, 2026",0.044983],["Feb 26, 2026",0.026946],["Feb 27, 2026",0.00554],["Feb 28, 2026",0.019934],["Mar 1, 2026",0.016181],["Mar 2, 2026",0.016892],["Mar 3, 2026",0.015584],["Mar 4, 2026",0.00627],["Mar 5, 2026",0.010526],["Mar 6, 2026",0.017182],["Mar 7, 2026",0.014184],["Mar 8, 2026",0.008439],["Mar 9, 2026",0.015244],["Mar 10, 2026",0.009804],["Mar 11, 2026",0.02952],["Mar 12, 2026",0.024823],["Mar 13, 2026",0.017544],["Mar 14, 2026",0.010638],["Mar 15, 2026",0.011538],["Mar 16, 2026",0.012121],["Mar 17, 2026",0.03523],["Mar 18, 2026",0.006329],["Mar 19, 2026",0.02168],["Mar 20, 2026",0.008403],["Mar 21, 2026",0.008746],["Mar 22, 2026",0.023333],["Mar 23, 2026",0.016393],["Mar 24, 2026",0.010127],["Mar 25, 2026",0.02139],["Mar 26, 2026",0.022222],["Mar 27, 2026",0.031884],["Mar 28, 2026",0.020779],["Mar 29, 2026",0.007444],["Mar 30, 2026",0.030457],["Mar 31, 2026",0.020882],["Apr 1, 2026",0.012793],["Apr 2, 2026",0.012024],["Apr 3, 2026",0.015217],["Apr 4, 2026",0.023404],["Apr 5, 2026",0.008969],["Apr 6, 2026",0.019313],["Apr 7, 2026",0.010025],["Apr 8, 2026",0.009195],["Apr 9, 2026",0.015766],["Apr 10, 2026",0.018561],["Apr 11, 2026",0.015789],["Apr 12, 2026",0.008696],["Apr 13, 2026",0.021459],["Apr 14, 2026",0.012844],["Apr 15, 2026",0.01518],["Apr 16, 2026",0.016886],["Apr 17, 2026",0.018182]];
+
+const ROAS_RAW=[["Oct 1, 2025",2.42],["Oct 2, 2025",2.27],["Oct 3, 2025",0.74],["Oct 4, 2025",3.84],["Oct 5, 2025",6.92],["Oct 6, 2025",3.51],["Oct 7, 2025",0.58],["Oct 8, 2025",3.99],["Oct 9, 2025",0.93],["Oct 10, 2025",14.28],["Oct 11, 2025",3.01],["Oct 12, 2025",3.09],["Oct 13, 2025",8.07],["Oct 14, 2025",1.44],["Oct 15, 2025",0.46],["Oct 16, 2025",7.71],["Oct 17, 2025",8.43],["Oct 18, 2025",0.0],["Oct 19, 2025",1.99],["Oct 20, 2025",0.89],["Oct 21, 2025",2.78],["Oct 22, 2025",9.46],["Oct 23, 2025",5.52],["Oct 24, 2025",4.39],["Oct 25, 2025",7.77],["Oct 26, 2025",2.85],["Oct 27, 2025",1.76],["Oct 28, 2025",1.21],["Oct 29, 2025",11.43],["Oct 30, 2025",3.53],["Oct 31, 2025",2.65],["Nov 1, 2025",1.63],["Nov 2, 2025",1.05],["Nov 3, 2025",0.58],["Nov 4, 2025",2.16],["Nov 5, 2025",0.07],["Nov 6, 2025",1.33],["Nov 7, 2025",0.88],["Nov 8, 2025",1.22],["Nov 9, 2025",1.99],["Nov 10, 2025",2.77],["Nov 11, 2025",2.59],["Nov 12, 2025",0.49],["Nov 13, 2025",1.05],["Nov 14, 2025",1.55],["Nov 15, 2025",56.38],["Nov 16, 2025",1.21],["Nov 17, 2025",1.4],["Nov 18, 2025",5.42],["Nov 19, 2025",3.58],["Nov 20, 2025",1.43],["Nov 21, 2025",2.82],["Nov 22, 2025",4.89],["Nov 23, 2025",0.79],["Nov 24, 2025",6.77],["Nov 25, 2025",5.79],["Nov 26, 2025",5.7],["Nov 27, 2025",1.65],["Nov 28, 2025",2.52],["Nov 29, 2025",5.01],["Nov 30, 2025",2.41],["Dec 1, 2025",0.47],["Dec 2, 2025",2.86],["Dec 3, 2025",1.2],["Dec 4, 2025",7.13],["Dec 5, 2025",5.12],["Dec 6, 2025",6.46],["Dec 7, 2025",11.86],["Dec 8, 2025",3.41],["Dec 9, 2025",3.51],["Dec 10, 2025",3.98],["Dec 11, 2025",14.31],["Dec 12, 2025",7.45],["Dec 13, 2025",0.59],["Dec 14, 2025",0.48],["Dec 15, 2025",0.23],["Dec 16, 2025",2.05],["Dec 17, 2025",2.54],["Dec 18, 2025",0.8],["Dec 19, 2025",4.38],["Dec 20, 2025",0.92],["Dec 21, 2025",0.81],["Dec 22, 2025",0.97],["Dec 23, 2025",3.36],["Dec 24, 2025",3.63],["Dec 25, 2025",1.72],["Dec 26, 2025",3.57],["Dec 27, 2025",2.93],["Dec 28, 2025",1.68],["Dec 29, 2025",2.27],["Dec 30, 2025",1.37],["Dec 31, 2025",0.27],["Jan 1, 2026",2.98],["Jan 2, 2026",1.55],["Jan 3, 2026",1.82],["Jan 4, 2026",1.12],["Jan 5, 2026",1.25],["Jan 6, 2026",0.41],["Jan 7, 2026",0.52],["Jan 8, 2026",2.51],["Jan 9, 2026",1.79],["Jan 10, 2026",2.32],["Jan 11, 2026",2.58],["Jan 12, 2026",1.83],["Jan 13, 2026",2.43],["Jan 14, 2026",1.51],["Jan 15, 2026",1.95],["Jan 16, 2026",3.03],["Jan 17, 2026",3.21],["Jan 18, 2026",3.08],["Jan 19, 2026",2.17],["Jan 20, 2026",1.57],["Jan 21, 2026",2.1],["Jan 22, 2026",3.05],["Jan 23, 2026",2.8],["Jan 24, 2026",5.14],["Jan 25, 2026",19.31],["Jan 26, 2026",8.67],["Jan 27, 2026",12.06],["Jan 28, 2026",1.31],["Jan 29, 2026",3.75],["Jan 30, 2026",2.86],["Jan 31, 2026",9.41],["Feb 1, 2026",0.85],["Feb 2, 2026",18.56],["Feb 3, 2026",4.04],["Feb 4, 2026",1.72],["Feb 5, 2026",1.36],["Feb 6, 2026",1.52],["Feb 7, 2026",1.14],["Feb 8, 2026",3.71],["Feb 9, 2026",2.53],["Feb 10, 2026",0.96],["Feb 11, 2026",0.93],["Feb 12, 2026",2.95],["Feb 13, 2026",1.01],["Feb 14, 2026",0.57],["Feb 15, 2026",0.72],["Feb 16, 2026",1.1],["Feb 17, 2026",1.17],["Feb 18, 2026",0.87],["Feb 19, 2026",1.0],["Feb 20, 2026",0.93],["Feb 21, 2026",0.67],["Feb 22, 2026",0.53],["Feb 23, 2026",1.03],["Feb 24, 2026",0.87],["Feb 25, 2026",3.51],["Feb 26, 2026",2.24],["Feb 27, 2026",0.38],["Feb 28, 2026",1.77],["Mar 1, 2026",1.86],["Mar 2, 2026",0.88],["Mar 3, 2026",0.36],["Mar 4, 2026",0.55],["Mar 5, 2026",0.47],["Mar 6, 2026",0.74],["Mar 7, 2026",3.15],["Mar 8, 2026",0.58],["Mar 9, 2026",0.99],["Mar 10, 2026",0.84],["Mar 11, 2026",1.88],["Mar 12, 2026",2.23],["Mar 13, 2026",1.38],["Mar 14, 2026",0.75],["Mar 15, 2026",0.45],["Mar 16, 2026",1.28],["Mar 17, 2026",2.35],["Mar 18, 2026",0.41],["Mar 19, 2026",0.86],["Mar 20, 2026",0.33],["Mar 21, 2026",1.65],["Mar 22, 2026",1.61],["Mar 23, 2026",0.59],["Mar 24, 2026",0.95],["Mar 25, 2026",2.22],["Mar 26, 2026",1.43],["Mar 27, 2026",1.43],["Mar 28, 2026",1.24],["Mar 29, 2026",0.35],["Mar 30, 2026",1.19],["Mar 31, 2026",0.6],["Apr 1, 2026",1.3],["Apr 2, 2026",0.57],["Apr 3, 2026",0.5],["Apr 4, 2026",1.1],["Apr 5, 2026",0.74],["Apr 6, 2026",1.15],["Apr 7, 2026",0.73],["Apr 8, 2026",0.33],["Apr 9, 2026",0.97],["Apr 10, 2026",2.37],["Apr 11, 2026",0.56],["Apr 12, 2026",1.39],["Apr 13, 2026",1.77],["Apr 14, 2026",0.52],["Apr 15, 2026",1.58],["Apr 16, 2026",1.49]];
+
+const NR_RAW=[["Oct 1, 2025",3,0],["Oct 2, 2025",4,2],["Oct 3, 2025",2,0],["Oct 4, 2025",6,3],["Oct 5, 2025",3,1],["Oct 6, 2025",5,2],["Oct 7, 2025",1,1],["Oct 8, 2025",3,2],["Oct 9, 2025",2,1],["Oct 10, 2025",11,6],["Oct 11, 2025",4,1],["Oct 12, 2025",4,2],["Oct 13, 2025",14,8],["Oct 14, 2025",3,2],["Oct 15, 2025",1,0],["Oct 16, 2025",5,3],["Oct 17, 2025",7,1],["Oct 19, 2025",5,2],["Oct 20, 2025",2,1],["Oct 21, 2025",3,2],["Oct 22, 2025",6,5],["Oct 23, 2025",3,2],["Oct 24, 2025",7,6],["Oct 25, 2025",9,2],["Oct 26, 2025",5,1],["Oct 27, 2025",3,2],["Oct 28, 2025",2,1],["Oct 29, 2025",24,16],["Oct 30, 2025",8,5],["Oct 31, 2025",7,2],["Nov 1, 2025",6,2],["Nov 2, 2025",5,1],["Nov 3, 2025",5,2],["Nov 4, 2025",18,8],["Nov 5, 2025",1,1],["Nov 6, 2025",5,5],["Nov 7, 2025",3,2],["Nov 8, 2025",7,4],["Nov 9, 2025",14,6],["Nov 10, 2025",15,6],["Nov 11, 2025",17,10],["Nov 12, 2025",4,1],["Nov 13, 2025",4,2],["Nov 14, 2025",9,8],["Nov 15, 2025",7,5],["Nov 16, 2025",8,2],["Nov 17, 2025",8,2],["Nov 18, 2025",9,5],["Nov 19, 2025",17,11],["Nov 20, 2025",8,3],["Nov 21, 2025",11,5],["Nov 22, 2025",16,5],["Nov 23, 2025",4,0],["Nov 24, 2025",6,4],["Nov 25, 2025",6,4],["Nov 26, 2025",7,2],["Nov 27, 2025",2,1],["Nov 28, 2025",2,2],["Nov 29, 2025",6,3],["Nov 30, 2025",6,1],["Dec 1, 2025",2,1],["Dec 2, 2025",8,7],["Dec 3, 2025",5,4],["Dec 4, 2025",10,2],["Dec 5, 2025",3,0],["Dec 6, 2025",11,5],["Dec 7, 2025",6,2],["Dec 8, 2025",4,3],["Dec 9, 2025",6,1],["Dec 10, 2025",13,4],["Dec 11, 2025",14,5],["Dec 12, 2025",11,6],["Dec 13, 2025",4,2],["Dec 14, 2025",3,2],["Dec 15, 2025",2,1],["Dec 16, 2025",6,5],["Dec 17, 2025",6,2],["Dec 18, 2025",2,1],["Dec 19, 2025",5,2],["Dec 20, 2025",5,2],["Dec 21, 2025",5,4],["Dec 22, 2025",5,4],["Dec 23, 2025",7,5],["Dec 24, 2025",7,4],["Dec 25, 2025",7,3],["Dec 26, 2025",11,8],["Dec 27, 2025",12,8],["Dec 28, 2025",6,1],["Dec 29, 2025",8,5],["Dec 30, 2025",3,2],["Dec 31, 2025",2,0],["Jan 1, 2026",3,2],["Jan 2, 2026",4,2],["Jan 3, 2026",4,3],["Jan 4, 2026",8,3],["Jan 5, 2026",6,1],["Jan 6, 2026",4,3],["Jan 7, 2026",5,4],["Jan 8, 2026",14,7],["Jan 9, 2026",5,2],["Jan 10, 2026",8,6],["Jan 11, 2026",9,6],["Jan 12, 2026",9,5],["Jan 13, 2026",10,5],["Jan 14, 2026",9,5],["Jan 15, 2026",14,11],["Jan 16, 2026",19,13],["Jan 17, 2026",12,6],["Jan 18, 2026",11,7],["Jan 19, 2026",5,1],["Jan 20, 2026",8,4],["Jan 21, 2026",6,4],["Jan 22, 2026",14,11],["Jan 23, 2026",5,2],["Jan 24, 2026",4,2],["Jan 25, 2026",10,4],["Jan 26, 2026",4,3],["Jan 27, 2026",7,4],["Jan 28, 2026",4,1],["Jan 29, 2026",8,5],["Jan 30, 2026",13,4],["Jan 31, 2026",16,7],["Feb 1, 2026",4,3],["Feb 2, 2026",9,9],["Feb 3, 2026",6,5],["Feb 4, 2026",4,4],["Feb 5, 2026",5,3],["Feb 6, 2026",9,1],["Feb 7, 2026",5,0],["Feb 8, 2026",10,3],["Feb 9, 2026",9,4],["Feb 10, 2026",7,4],["Feb 11, 2026",6,4],["Feb 12, 2026",9,5],["Feb 13, 2026",11,3],["Feb 14, 2026",6,3],["Feb 15, 2026",11,5],["Feb 16, 2026",11,6],["Feb 17, 2026",14,13],["Feb 18, 2026",5,4],["Feb 19, 2026",6,3],["Feb 20, 2026",7,4],["Feb 21, 2026",5,1],["Feb 22, 2026",8,5],["Feb 23, 2026",6,2],["Feb 24, 2026",6,3],["Feb 25, 2026",17,11],["Feb 26, 2026",10,4],["Feb 27, 2026",5,0],["Feb 28, 2026",8,6],["Mar 1, 2026",5,4],["Mar 2, 2026",9,6],["Mar 3, 2026",5,4],["Mar 4, 2026",2,1],["Mar 5, 2026",2,1],["Mar 6, 2026",6,4],["Mar 7, 2026",8,4],["Mar 8, 2026",3,2],["Mar 9, 2026",6,3],["Mar 10, 2026",11,1],["Mar 11, 2026",8,5],["Mar 12, 2026",12,4],["Mar 13, 2026",13,7],["Mar 14, 2026",5,3],["Mar 15, 2026",6,3],["Mar 16, 2026",4,3],["Mar 17, 2026",13,9],["Mar 18, 2026",3,0],["Mar 19, 2026",10,8],["Mar 20, 2026",4,4],["Mar 21, 2026",6,3],["Mar 22, 2026",8,5],["Mar 23, 2026",7,5],["Mar 24, 2026",7,3],["Mar 25, 2026",13,6],["Mar 26, 2026",10,7],["Mar 27, 2026",14,4],["Mar 28, 2026",12,7],["Mar 29, 2026",6,4],["Mar 30, 2026",17,8],["Mar 31, 2026",12,5],["Apr 1, 2026",10,7],["Apr 2, 2026",10,8],["Apr 3, 2026",8,6],["Apr 4, 2026",17,10],["Apr 5, 2026",7,1],["Apr 6, 2026",15,8],["Apr 7, 2026",8,5],["Apr 8, 2026",5,2],["Apr 9, 2026",10,5],["Apr 10, 2026",11,5],["Apr 11, 2026",7,3],["Apr 12, 2026",10,6],["Apr 13, 2026",19,7],["Apr 14, 2026",10,6],["Apr 15, 2026",13,6],["Apr 16, 2026",19,6],["Apr 17, 2026",4,2]];
+
+const REV_RAW=[["Oct 1, 2025",2198,2000],["Oct 2, 2025",4652,0],["Oct 3, 2025",1398,0],["Oct 4, 2025",6653,0],["Oct 5, 2025",1020,14200],["Oct 6, 2025",3902,3300],["Oct 7, 2025",1200,0],["Oct 8, 2025",1010,6650],["Oct 9, 2025",1798,0],["Oct 10, 2025",8247,20399],["Oct 11, 2025",2999,2500],["Oct 12, 2025",3399,3300],["Oct 13, 2025",13697,3300],["Oct 14, 2025",2699,0],["Oct 15, 2025",1000,0],["Oct 16, 2025",2280,11499],["Oct 17, 2025",6679,7300],["Oct 19, 2025",5496,0],["Oct 20, 2025",1798,0],["Oct 21, 2025",2280,3000],["Oct 22, 2025",3899,11999],["Oct 23, 2025",1999,7299],["Oct 24, 2025",8893,0],["Oct 25, 2025",8931,6000],["Oct 26, 2025",6398,0],["Oct 27, 2025",3500,0],["Oct 28, 2025",2400,0],["Oct 29, 2025",24623,11500],["Oct 30, 2025",4896,10500],["Oct 31, 2025",5353,9299],["Nov 1, 2025",6597,5999],["Nov 2, 2025",3504,6000],["Nov 3, 2025",6018,0],["Nov 4, 2025",19090,2000],["Nov 5, 2025",679,0],["Nov 6, 2025",8699,6000],["Nov 7, 2025",1898,6000],["Nov 8, 2025",8297,2000],["Nov 9, 2025",15926,6000],["Nov 10, 2025",25344,2000],["Nov 11, 2025",21388,2500],["Nov 12, 2025",2257,2500],["Nov 13, 2025",1799,6000],["Nov 14, 2025",7960,3650],["Nov 15, 2025",8497,0],["Nov 16, 2025",7376,2500],["Nov 17, 2025",7293,0],["Nov 18, 2025",16898,10000],["Nov 19, 2025",19478,0],["Nov 20, 2025",8544,0],["Nov 21, 2025",9076,6000],["Nov 22, 2025",14177,6000],["Nov 23, 2025",2497,2000],["Nov 24, 2025",11397,12500],["Nov 25, 2025",2220,12600],["Nov 26, 2025",8295,5500],["Nov 27, 2025",1080,3300],["Nov 28, 2025",899,8000],["Nov 29, 2025",10254,4999],["Nov 30, 2025",4396,2500],["Dec 1, 2025",1799,0],["Dec 2, 2025",5504,5999],["Dec 3, 2025",3209,999],["Dec 4, 2025",12848,8000],["Dec 5, 2025",11997,0],["Dec 6, 2025",10705,4000],["Dec 7, 2025",4197,30000],["Dec 8, 2025",9198,3000],["Dec 9, 2025",8997,5999],["Dec 10, 2025",14552,2000],["Dec 11, 2025",19949,28799],["Dec 12, 2025",24792,4500],["Dec 13, 2025",2396,0],["Dec 14, 2025",2497,0],["Dec 15, 2025",1110,0],["Dec 16, 2025",2953,4999],["Dec 17, 2025",6554,4000],["Dec 18, 2025",3699,0],["Dec 19, 2025",1354,19499],["Dec 20, 2025",4396,0],["Dec 21, 2025",4298,999],["Dec 22, 2025",4410,999],["Dec 23, 2025",7099,13000],["Dec 24, 2025",8400,13999],["Dec 25, 2025",4897,6000],["Dec 26, 2025",14199,5500],["Dec 27, 2025",15397,0],["Dec 28, 2025",5797,5000],["Dec 29, 2025",10049,5000],["Dec 30, 2025",1499,7000],["Dec 31, 2025",1598,0],["Jan 1, 2026",0,15300],["Jan 2, 2026",2609,7500],["Jan 3, 2026",2153,9999],["Jan 4, 2026",6727,4500],["Jan 5, 2026",4554,8000],["Jan 6, 2026",3697,0],["Jan 7, 2026",4552,0],["Jan 8, 2026",10627,9000],["Jan 9, 2026",7554,3999],["Jan 10, 2026",5653,8000],["Jan 11, 2026",13151,9299],["Jan 12, 2026",14317,2000],["Jan 13, 2026",15480,5555],["Jan 14, 2026",12294,2000],["Jan 15, 2026",11841,7000],["Jan 16, 2026",20906,3000],["Jan 17, 2026",11256,8999],["Jan 18, 2026",10515,11650],["Jan 19, 2026",1110,14000],["Jan 20, 2026",7655,2500],["Jan 21, 2026",7263,4000],["Jan 22, 2026",12611,4000],["Jan 23, 2026",3717,7500],["Jan 24, 2026",4295,0],["Jan 25, 2026",9229,11388],["Jan 26, 2026",5959,3000],["Jan 27, 2026",8236,3999],["Jan 28, 2026",8225,0],["Jan 29, 2026",9429,0],["Jan 30, 2026",8491,8500],["Jan 31, 2026",15172,3000],["Feb 1, 2026",3528,0],["Feb 2, 2026",6657,20478],["Feb 3, 2026",2966,3500],["Feb 4, 2026",3449,4956],["Feb 5, 2026",8614,0],["Feb 6, 2026",7249,3999],["Feb 7, 2026",4839,3650],["Feb 8, 2026",4644,27755],["Feb 9, 2026",4967,16500],["Feb 10, 2026",6172,4000],["Feb 11, 2026",10142,3000],["Feb 12, 2026",6684,32500],["Feb 13, 2026",8719,4499],["Feb 14, 2026",3476,6000],["Feb 15, 2026",7662,5555],["Feb 16, 2026",10194,11366],["Feb 17, 2026",13885,4500],["Feb 18, 2026",8708,2000],["Feb 19, 2026",9436,2500],["Feb 20, 2026",9641,0],["Feb 21, 2026",3534,3600],["Feb 22, 2026",5284,4478],["Feb 23, 2026",5135,8000],["Feb 24, 2026",7687,3000],["Feb 25, 2026",12724,22799],["Feb 26, 2026",6125,15999],["Feb 27, 2026",4242,0],["Feb 28, 2026",6693,8600],["Mar 1, 2026",2832,14477],["Mar 2, 2026",9592,4000],["Mar 3, 2026",5875,0],["Mar 4, 2026",1003,7000],["Mar 5, 2026",0,6000],["Mar 6, 2026",7633,2000],["Mar 7, 2026",4742,23749],["Mar 8, 2026",5688,0],["Mar 9, 2026",11409,999],["Mar 10, 2026",9285,1998],["Mar 11, 2026",5128,13000],["Mar 12, 2026",9521,13250],["Mar 13, 2026",16566,999],["Mar 14, 2026",3116,4478],["Mar 15, 2026",4578,2000],["Mar 16, 2026",14904,0],["Mar 17, 2026",19713,6499],["Mar 18, 2026",2006,2478],["Mar 19, 2026",9523,0],["Mar 20, 2026",3656,0],["Mar 21, 2026",5484,11999],["Mar 22, 2026",7751,13366],["Mar 23, 2026",6122,2500],["Mar 24, 2026",5475,8000],["Mar 25, 2026",20954,12978],["Mar 26, 2026",19278,2500],["Mar 27, 2026",17308,6500],["Mar 28, 2026",21994,0],["Mar 29, 2026",4264,3500],["Mar 30, 2026",16037,10497],["Mar 31, 2026",12370,0],["Apr 1, 2026",21377,8000],["Apr 2, 2026",11443,0],["Apr 3, 2026",7023,4500],["Apr 4, 2026",18235,0],["Apr 5, 2026",7811,6460],["Apr 6, 2026",19052,3000],["Apr 7, 2026",8146,6000],["Apr 8, 2026",6033,0],["Apr 9, 2026",8076,9999],["Apr 10, 2026",9297,19000],["Apr 11, 2026",7945,0],["Apr 12, 2026",14152,8478],["Apr 13, 2026",22451,2500],["Apr 14, 2026",10447,0],["Apr 15, 2026",13346,8599],["Apr 16, 2026",20699,0],["Apr 17, 2026",4035,0]];
+
+const SRC_RAW=[["Oct 1, 2025","undefined",3],["Oct 2, 2025","undefined",4],["Oct 3, 2025","undefined",2],["Oct 4, 2025","undefined",6],["Oct 5, 2025","Self",1],["Oct 5, 2025","undefined",2],["Oct 6, 2025","undefined",5],["Oct 7, 2025","undefined",1],["Oct 8, 2025","undefined",3],["Oct 9, 2025","undefined",2],["Oct 10, 2025","undefined",11],["Oct 11, 2025","Self",1],["Oct 11, 2025","undefined",3],["Oct 12, 2025","undefined",4],["Oct 13, 2025","Paid",2],["Oct 13, 2025","undefined",12],["Oct 14, 2025","undefined",3],["Oct 15, 2025","undefined",1],["Oct 16, 2025","undefined",5],["Oct 17, 2025","undefined",7],["Oct 19, 2025","undefined",5],["Oct 20, 2025","undefined",2],["Oct 21, 2025","undefined",3],["Oct 22, 2025","undefined",6],["Oct 23, 2025","Self",1],["Oct 23, 2025","undefined",2],["Oct 24, 2025","undefined",7],["Oct 25, 2025","undefined",9],["Oct 26, 2025","undefined",5],["Oct 27, 2025","undefined",3],["Oct 28, 2025","undefined",2],["Oct 29, 2025","undefined",24],["Oct 30, 2025","undefined",8],["Oct 31, 2025","undefined",7],["Nov 1, 2025","GE_Meta",1],["Nov 1, 2025","undefined",5],["Nov 2, 2025","undefined",5],["Nov 3, 2025","undefined",5],["Nov 4, 2025","GE_Meta",1],["Nov 4, 2025","Self",1],["Nov 4, 2025","undefined",16],["Nov 5, 2025","undefined",1],["Nov 6, 2025","undefined",5],["Nov 7, 2025","undefined",3],["Nov 8, 2025","GE_Meta",1],["Nov 8, 2025","undefined",6],["Nov 9, 2025","undefined",14],["Nov 10, 2025","GE_Meta",1],["Nov 10, 2025","undefined",14],["Nov 11, 2025","Instagram",1],["Nov 11, 2025","undefined",16],["Nov 12, 2025","GE_Meta",1],["Nov 12, 2025","undefined",3],["Nov 13, 2025","GE_Meta",1],["Nov 13, 2025","undefined",3],["Nov 14, 2025","undefined",9],["Nov 15, 2025","undefined",7],["Nov 16, 2025","undefined",8],["Nov 17, 2025","undefined",8],["Nov 18, 2025","GE_Meta",1],["Nov 18, 2025","undefined",8],["Nov 19, 2025","GE_Meta",2],["Nov 19, 2025","Self",2],["Nov 19, 2025","undefined",13],["Nov 20, 2025","undefined",8],["Nov 21, 2025","undefined",11],["Nov 22, 2025","Self",1],["Nov 22, 2025","undefined",15],["Nov 23, 2025","undefined",4],["Nov 24, 2025","undefined",6],["Nov 25, 2025","Self",2],["Nov 25, 2025","undefined",4],["Nov 26, 2025","undefined",7],["Nov 27, 2025","undefined",2],["Nov 28, 2025","undefined",2],["Nov 29, 2025","Self",1],["Nov 29, 2025","undefined",5],["Nov 30, 2025","GE_Meta",2],["Nov 30, 2025","WA_Channel",1],["Nov 30, 2025","WA_SS",1],["Nov 30, 2025","undefined",2],["Dec 1, 2025","undefined",2],["Dec 2, 2025","CRM_WA",1],["Dec 2, 2025","download_banner",2],["Dec 2, 2025","notification",3],["Dec 2, 2025","undefined",2],["Dec 3, 2025","GE_Meta",4],["Dec 3, 2025","download_banner",1],["Dec 4, 2025","GE_Meta",2],["Dec 4, 2025","WA_Channel",1],["Dec 4, 2025","download_banner",1],["Dec 4, 2025","undefined",6],["Dec 5, 2025","GE_Meta",1],["Dec 5, 2025","crm_email",1],["Dec 5, 2025","download_banner",1],["Dec 6, 2025","GE_Meta",4],["Dec 6, 2025","Paid",1],["Dec 6, 2025","SitelinkUpcomingsessions",2],["Dec 6, 2025","download_banner",2],["Dec 6, 2025","notification",1],["Dec 6, 2025","undefined",1],["Dec 7, 2025","CRM_WA",1],["Dec 7, 2025","Paid",3],["Dec 7, 2025","download_banner",1],["Dec 7, 2025","undefined",1],["Dec 8, 2025","CRM_WA",1],["Dec 8, 2025","download_banner",2],["Dec 8, 2025","undefined",1],["Dec 9, 2025","GE_Meta",2],["Dec 9, 2025","SitelinkFreeSession",2],["Dec 9, 2025","crm_email",1],["Dec 9, 2025","download_banner",1],["Dec 10, 2025","GE_Meta",7],["Dec 10, 2025","notification",3],["Dec 10, 2025","undefined",3],["Dec 11, 2025","GE_Meta",1],["Dec 11, 2025","Pmax",1],["Dec 11, 2025","Self",2],["Dec 11, 2025","download_banner",1],["Dec 11, 2025","instagram",1],["Dec 11, 2025","notification",6],["Dec 11, 2025","undefined",2],["Dec 12, 2025","GE_Meta",3],["Dec 12, 2025","download_banner",1],["Dec 12, 2025","notification",5],["Dec 12, 2025","undefined",2],["Dec 13, 2025","GE_Meta",1],["Dec 13, 2025","download_banner",1],["Dec 13, 2025","undefined",2],["Dec 14, 2025","GE_Meta",2],["Dec 14, 2025","undefined",1],["Dec 15, 2025","undefined",2],["Dec 16, 2025","GE_Meta",2],["Dec 16, 2025","Paid",1],["Dec 16, 2025","download_banner",2],["Dec 16, 2025","notification",1],["Dec 17, 2025","GE_Meta",1],["Dec 17, 2025","Pmax",1],["Dec 17, 2025","download_banner",1],["Dec 17, 2025","notification",1],["Dec 17, 2025","undefined",2],["Dec 18, 2025","crm_email",1],["Dec 18, 2025","undefined",1],["Dec 19, 2025","GE_Meta",1],["Dec 19, 2025","Paid",1],["Dec 19, 2025","notification",2],["Dec 19, 2025","undefined",1],["Dec 20, 2025","WA_Channel",1],["Dec 20, 2025","undefined",4],["Dec 21, 2025","GE_Meta",1],["Dec 21, 2025","Paid",1],["Dec 21, 2025","download_banner",1],["Dec 21, 2025","undefined",2],["Dec 22, 2025","CRM_WA",1],["Dec 22, 2025","WA",1],["Dec 22, 2025","download_banner",1],["Dec 22, 2025","undefined",2],["Dec 23, 2025","CRM_WA",1],["Dec 23, 2025","GE_Meta",2],["Dec 23, 2025","download_banner",2],["Dec 23, 2025","notification",2],["Dec 24, 2025","WA",1],["Dec 24, 2025","download_banner",1],["Dec 24, 2025","notification",2],["Dec 24, 2025","undefined",3],["Dec 25, 2025","GE_Meta",2],["Dec 25, 2025","Pmax",1],["Dec 25, 2025","notification",2],["Dec 25, 2025","undefined",2],["Dec 26, 2025","GE_Meta",1],["Dec 26, 2025","crm_email",1],["Dec 26, 2025","download_banner",3],["Dec 26, 2025","notification",3],["Dec 26, 2025","undefined",3],["Dec 27, 2025","GE_Meta",5],["Dec 27, 2025","Paid",1],["Dec 27, 2025","download_banner",1],["Dec 27, 2025","trigger-banner",1],["Dec 27, 2025","undefined",4],["Dec 28, 2025","GE_Meta",1],["Dec 28, 2025","Paid",1],["Dec 28, 2025","download_banner",1],["Dec 28, 2025","notification",3],["Dec 29, 2025","WA_Channel",1],["Dec 29, 2025","crm_email",1],["Dec 29, 2025","download_banner",3],["Dec 29, 2025","notification",2],["Dec 29, 2025","undefined",1],["Dec 30, 2025","CRM_WA",1],["Dec 30, 2025","notification",2],["Dec 31, 2025","download_banner",2],["Jan 1, 2026","download_banner",1],["Jan 1, 2026","notification",1],["Jan 1, 2026","undefined",1],["Jan 2, 2026","Pmax",1],["Jan 2, 2026","download_banner",1],["Jan 2, 2026","notification",2],["Jan 3, 2026","GE_Meta",1],["Jan 3, 2026","notification",1],["Jan 3, 2026","undefined",2],["Jan 4, 2026","CRM_WA",2],["Jan 4, 2026","GE_Meta",1],["Jan 4, 2026","Self",1],["Jan 4, 2026","download_banner",1],["Jan 4, 2026","notification",3],["Jan 5, 2026","CRM_WA",1],["Jan 5, 2026","download_banner",2],["Jan 5, 2026","undefined",3],["Jan 6, 2026","Paid",1],["Jan 6, 2026","download_banner",2],["Jan 6, 2026","notification",1],["Jan 7, 2026","GE_Meta",2],["Jan 7, 2026","Paid",1],["Jan 7, 2026","undefined",2],["Jan 8, 2026","GE_Meta",2],["Jan 8, 2026","Self",1],["Jan 8, 2026","download_banner",3],["Jan 8, 2026","notification",6],["Jan 8, 2026","undefined",2],["Jan 9, 2026","GE_Meta",1],["Jan 9, 2026","download_banner",1],["Jan 9, 2026","notification",2],["Jan 9, 2026","shared",1],["Jan 10, 2026","GE_Meta",3],["Jan 10, 2026","Self",1],["Jan 10, 2026","undefined",4],["Jan 11, 2026","GE_Meta",3],["Jan 11, 2026","Paid",1],["Jan 11, 2026","Pmax",1],["Jan 11, 2026","notification",3],["Jan 11, 2026","undefined",1],["Jan 12, 2026","Paid",3],["Jan 12, 2026","Self",1],["Jan 12, 2026","crm_email",1],["Jan 12, 2026","download_banner",1],["Jan 12, 2026","notification",2],["Jan 12, 2026","undefined",1],["Jan 13, 2026","GE_Meta",4],["Jan 13, 2026","Self",1],["Jan 13, 2026","crm_email",1],["Jan 13, 2026","download_banner",1],["Jan 13, 2026","notification",2],["Jan 13, 2026","website",1],["Jan 14, 2026","Self",1],["Jan 14, 2026","WATI_BOT",1],["Jan 14, 2026","crm_email",3],["Jan 14, 2026","download_banner",1],["Jan 14, 2026","notification",2],["Jan 14, 2026","undefined",1],["Jan 15, 2026","GE_Meta",1],["Jan 15, 2026","crm_email",1],["Jan 15, 2026","download_banner",4],["Jan 15, 2026","notification",5],["Jan 15, 2026","undefined",3],["Jan 16, 2026","GE_Meta",2],["Jan 16, 2026","SitelinkFreeSession",2],["Jan 16, 2026","crm_email",3],["Jan 16, 2026","download_banner",7],["Jan 16, 2026","notification",2],["Jan 16, 2026","undefined",3],["Jan 17, 2026","Self",1],["Jan 17, 2026","crm_email",1],["Jan 17, 2026","download_banner",1],["Jan 17, 2026","notification",5],["Jan 17, 2026","undefined",4],["Jan 18, 2026","CRM_WA",1],["Jan 18, 2026","GE_Meta",2],["Jan 18, 2026","WATI_BOT",1],["Jan 18, 2026","crm_email",1],["Jan 18, 2026","download_banner",3],["Jan 18, 2026","notification",2],["Jan 18, 2026","undefined",1],["Jan 19, 2026","WATI_BOT",2],["Jan 19, 2026","notification",1],["Jan 19, 2026","undefined",2],["Jan 20, 2026","CRM_WA",1],["Jan 20, 2026","Paid",1],["Jan 20, 2026","download_banner",4],["Jan 20, 2026","notification",1],["Jan 20, 2026","undefined",1],["Jan 21, 2026","CRM_WA",1],["Jan 21, 2026","notification",2],["Jan 21, 2026","undefined",3],["Jan 22, 2026","Self",8],["Jan 22, 2026","crm_email",1],["Jan 22, 2026","notification",1],["Jan 22, 2026","undefined",4],["Jan 23, 2026","download_banner",1],["Jan 23, 2026","notification",4],["Jan 24, 2026","Self",2],["Jan 24, 2026","notification",2],["Jan 25, 2026","GE_Meta",1],["Jan 25, 2026","Self",4],["Jan 25, 2026","crm_email",1],["Jan 25, 2026","download_banner",1],["Jan 25, 2026","notification",1],["Jan 25, 2026","undefined",2],["Jan 26, 2026","GE_Meta",1],["Jan 26, 2026","download_banner",1],["Jan 26, 2026","notification",2],["Jan 27, 2026","Paid",1],["Jan 27, 2026","crm_email",1],["Jan 27, 2026","download_banner",1],["Jan 27, 2026","notification",1],["Jan 27, 2026","undefined",3],["Jan 28, 2026","Paid",1],["Jan 28, 2026","Pmax",2],["Jan 28, 2026","crm_email",1],["Jan 29, 2026","WA_Channel",1],["Jan 29, 2026","download_banner",1],["Jan 29, 2026","notification",5],["Jan 29, 2026","undefined",1],["Jan 30, 2026","GE_Meta",5],["Jan 30, 2026","download_banner",1],["Jan 30, 2026","notification",3],["Jan 30, 2026","undefined",4],["Jan 31, 2026","CRM_WA",1],["Jan 31, 2026","Paid",2],["Jan 31, 2026","Pmax",1],["Jan 31, 2026","download_banner",2],["Jan 31, 2026","notification",7],["Jan 31, 2026","undefined",3],["Feb 1, 2026","GE_Meta",2],["Feb 1, 2026","Paid",1],["Feb 1, 2026","notification",1],["Feb 2, 2026","GE_Meta",1],["Feb 2, 2026","download_banner",4],["Feb 2, 2026","notification",1],["Feb 2, 2026","undefined",3],["Feb 3, 2026","GE_Meta",2],["Feb 3, 2026","WA",1],["Feb 3, 2026","download_banner",1],["Feb 3, 2026","notification",1],["Feb 3, 2026","undefined",1],["Feb 4, 2026","download_banner",2],["Feb 4, 2026","undefined",2],["Feb 5, 2026","Paid",1],["Feb 5, 2026","Self",1],["Feb 5, 2026","download_banner",1],["Feb 5, 2026","incentive",1],["Feb 5, 2026","undefined",1],["Feb 6, 2026","GE_Meta",1],["Feb 6, 2026","WA",1],["Feb 6, 2026","notification",4],["Feb 6, 2026","undefined",3],["Feb 7, 2026","GE_Meta",1],["Feb 7, 2026","crm_email",1],["Feb 7, 2026","notification",3],["Feb 8, 2026","notification",7],["Feb 8, 2026","undefined",3],["Feb 9, 2026","GE_Meta",2],["Feb 9, 2026","crm_email",1],["Feb 9, 2026","notification",4],["Feb 9, 2026","undefined",2],["Feb 10, 2026","GE_Meta",2],["Feb 10, 2026","download_banner",2],["Feb 10, 2026","notification",1],["Feb 10, 2026","undefined",2],["Feb 11, 2026","Paid",1],["Feb 11, 2026","Self",1],["Feb 11, 2026","crm_email",1],["Feb 11, 2026","notification",2],["Feb 11, 2026","undefined",1],["Feb 12, 2026","GE_Meta",3],["Feb 12, 2026","Self",1],["Feb 12, 2026","notification",2],["Feb 12, 2026","undefined",3],["Feb 13, 2026","GE_Meta",1],["Feb 13, 2026","Self",1],["Feb 13, 2026","crm_email",1],["Feb 13, 2026","download_banner",1],["Feb 13, 2026","notification",4],["Feb 13, 2026","undefined",3],["Feb 14, 2026","Paid",1],["Feb 14, 2026","notification",5],["Feb 15, 2026","GE_Meta",1],["Feb 15, 2026","Pmax",1],["Feb 15, 2026","download_banner",3],["Feb 15, 2026","notification",3],["Feb 15, 2026","undefined",3],["Feb 16, 2026","GE_Meta",1],["Feb 16, 2026","Paid",1],["Feb 16, 2026","Self",1],["Feb 16, 2026","notification",3],["Feb 16, 2026","undefined",5],["Feb 17, 2026","GE_Meta",2],["Feb 17, 2026","Pmax",1],["Feb 17, 2026","download_banner",4],["Feb 17, 2026","notification",3],["Feb 17, 2026","undefined",4],["Feb 18, 2026","download_banner",1],["Feb 18, 2026","notification",1],["Feb 18, 2026","undefined",3],["Feb 19, 2026","Self",1],["Feb 19, 2026","download_banner",1],["Feb 19, 2026","notification",2],["Feb 19, 2026","undefined",1],["Feb 19, 2026","website",1],["Feb 20, 2026","crm_email",1],["Feb 20, 2026","download_banner",1],["Feb 20, 2026","notification",1],["Feb 20, 2026","undefined",3],["Feb 20, 2026","valentine",1],["Feb 21, 2026","GE_Meta",1],["Feb 21, 2026","notification",2],["Feb 21, 2026","undefined",2],["Feb 22, 2026","notification",3],["Feb 22, 2026","self",2],["Feb 22, 2026","undefined",3],["Feb 23, 2026","notification",4],["Feb 23, 2026","undefined",2],["Feb 24, 2026","GE_Meta",1],["Feb 24, 2026","undefined",5],["Feb 25, 2026","GE_Meta",1],["Feb 25, 2026","WA_Channel",4],["Feb 25, 2026","notification",5],["Feb 25, 2026","undefined",7],["Feb 26, 2026","GE_Meta",1],["Feb 26, 2026","Self",1],["Feb 26, 2026","download_banner",1],["Feb 26, 2026","ig",1],["Feb 26, 2026","notification",3],["Feb 26, 2026","undefined",3],["Feb 27, 2026","WA_Channel",1],["Feb 27, 2026","crm_email",1],["Feb 27, 2026","undefined",3],["Feb 28, 2026","GE_Meta",1],["Feb 28, 2026","Self",1],["Feb 28, 2026","crm_email",1],["Feb 28, 2026","download_banner",2],["Feb 28, 2026","notification",2],["Feb 28, 2026","undefined",1],["Mar 1, 2026","WA_Channel",1],["Mar 1, 2026","download_banner",1],["Mar 1, 2026","undefined",3],["Mar 2, 2026","CRM_WA",1],["Mar 2, 2026","GE_Meta",1],["Mar 2, 2026","download_banner",1],["Mar 2, 2026","ig",1],["Mar 2, 2026","notification",2],["Mar 2, 2026","undefined",3],["Mar 3, 2026","GE_Meta",1],["Mar 3, 2026","ig",1],["Mar 3, 2026","notification",1],["Mar 3, 2026","undefined",2],["Mar 4, 2026","GE_Meta",1],["Mar 4, 2026","undefined",1],["Mar 5, 2026","GE_Meta",1],["Mar 5, 2026","download_banner",1],["Mar 6, 2026","GE_Meta",1],["Mar 6, 2026","notification",1],["Mar 6, 2026","undefined",4],["Mar 7, 2026","GE_Meta",1],["Mar 7, 2026","Paid",3],["Mar 7, 2026","notification",1],["Mar 7, 2026","undefined",3],["Mar 8, 2026","GE_Meta",1],["Mar 8, 2026","undefined",2],["Mar 9, 2026","GE_Meta",2],["Mar 9, 2026","notification",3],["Mar 9, 2026","undefined",1],["Mar 10, 2026","GE_Meta",1],["Mar 10, 2026","Paid",2],["Mar 10, 2026","crm_email",7],["Mar 10, 2026","undefined",1],["Mar 11, 2026","download_banner",2],["Mar 11, 2026","ig",1],["Mar 11, 2026","notification",3],["Mar 11, 2026","undefined",2],["Mar 12, 2026","GE_Meta",1],["Mar 12, 2026","Self",1],["Mar 12, 2026","crm_email",1],["Mar 12, 2026","download_banner",2],["Mar 12, 2026","notification",5],["Mar 12, 2026","undefined",2],["Mar 13, 2026","crm_email",1],["Mar 13, 2026","download_banner",2],["Mar 13, 2026","notification",3],["Mar 13, 2026","undefined",7],["Mar 14, 2026","GE_Meta",1],["Mar 14, 2026","notification",1],["Mar 14, 2026","undefined",3],["Mar 15, 2026","GE_Meta",2],["Mar 15, 2026","notification",3],["Mar 15, 2026","undefined",1],["Mar 16, 2026","CRM_WA",1],["Mar 16, 2026","GE_Meta",1],["Mar 16, 2026","Paid",1],["Mar 16, 2026","undefined",1],["Mar 17, 2026","CRM_WA",1],["Mar 17, 2026","GE_Meta",2],["Mar 17, 2026","Self",1],["Mar 17, 2026","download_banner",1],["Mar 17, 2026","ig",1],["Mar 17, 2026","notification",1],["Mar 17, 2026","undefined",6],["Mar 18, 2026","CRM_WA",1],["Mar 18, 2026","undefined",2],["Mar 19, 2026","CRM_WA",1],["Mar 19, 2026","WATI_Bot",1],["Mar 19, 2026","notification",3],["Mar 19, 2026","undefined",5],["Mar 20, 2026","CRM_WA",1],["Mar 20, 2026","notification",3],["Mar 21, 2026","WA_Channel",1],["Mar 21, 2026","download_banner",1],["Mar 21, 2026","notification",1],["Mar 21, 2026","undefined",3],["Mar 22, 2026","CRM_WA",1],["Mar 22, 2026","GE_Meta",2],["Mar 22, 2026","Self",1],["Mar 22, 2026","download_banner",1],["Mar 22, 2026","notification",1],["Mar 22, 2026","undefined",2],["Mar 23, 2026","GE_Meta",2],["Mar 23, 2026","download_banner",1],["Mar 23, 2026","undefined",4],["Mar 24, 2026","GE_Meta",3],["Mar 24, 2026","download_banner",1],["Mar 24, 2026","undefined",3],["Mar 25, 2026","GE_Meta",1],["Mar 25, 2026","Self",1],["Mar 25, 2026","download_banner",3],["Mar 25, 2026","notification",2],["Mar 25, 2026","undefined",6],["Mar 26, 2026","WATI_BOT",1],["Mar 26, 2026","download_banner",1],["Mar 26, 2026","notification",1],["Mar 26, 2026","undefined",7],["Mar 27, 2026","GE_Meta",1],["Mar 27, 2026","crm_email",1],["Mar 27, 2026","notification",1],["Mar 27, 2026","undefined",11],["Mar 28, 2026","GE_Meta",1],["Mar 28, 2026","Paid",1],["Mar 28, 2026","WATI_BOT",1],["Mar 28, 2026","WA_Channel",1],["Mar 28, 2026","download_banner",1],["Mar 28, 2026","instagram",1],["Mar 28, 2026","notification",2],["Mar 28, 2026","undefined",4],["Mar 29, 2026","GE_Meta",1],["Mar 29, 2026","notification",2],["Mar 29, 2026","undefined",3],["Mar 30, 2026","download_banner",2],["Mar 30, 2026","notification",5],["Mar 30, 2026","undefined",10],["Mar 31, 2026","CRM_WA",2],["Mar 31, 2026","GE_Meta",2],["Mar 31, 2026","Pmax",1],["Mar 31, 2026","crm_email",1],["Mar 31, 2026","notification",3],["Mar 31, 2026","undefined",3],["Apr 1, 2026","GE_Meta",1],["Apr 1, 2026","download_banner",2],["Apr 1, 2026","notification",2],["Apr 1, 2026","undefined",5],["Apr 2, 2026","WATI_BOT",1],["Apr 2, 2026","download_banner",2],["Apr 2, 2026","notification",1],["Apr 2, 2026","undefined",6],["Apr 3, 2026","GE_Meta",1],["Apr 3, 2026","Paid",1],["Apr 3, 2026","WA_Channel",1],["Apr 3, 2026","undefined",5],["Apr 4, 2026","GE_Meta",2],["Apr 4, 2026","crm_email",1],["Apr 4, 2026","download_banner",1],["Apr 4, 2026","notification",6],["Apr 4, 2026","undefined",7],["Apr 5, 2026","GE_Meta",2],["Apr 5, 2026","WATI_BOT",1],["Apr 5, 2026","notification",2],["Apr 5, 2026","undefined",2],["Apr 6, 2026","CRM_WA",2],["Apr 6, 2026","GE_Meta",2],["Apr 6, 2026","download_banner",2],["Apr 6, 2026","notification",1],["Apr 6, 2026","undefined",8],["Apr 7, 2026","GE_Meta",3],["Apr 7, 2026","download_banner",1],["Apr 7, 2026","undefined",4],["Apr 8, 2026","GE_Meta",2],["Apr 8, 2026","crm_email",1],["Apr 8, 2026","undefined",2],["Apr 9, 2026","notification",1],["Apr 9, 2026","undefined",9],["Apr 10, 2026","GE_Meta",5],["Apr 10, 2026","download_banner",1],["Apr 10, 2026","fb",2],["Apr 10, 2026","notification",1],["Apr 10, 2026","undefined",2],["Apr 11, 2026","download_banner",1],["Apr 11, 2026","fb",2],["Apr 11, 2026","undefined",4],["Apr 12, 2026","GE_Meta",2],["Apr 12, 2026","Paid",2],["Apr 12, 2026","notification",1],["Apr 12, 2026","undefined",5],["Apr 13, 2026","GE_Meta",5],["Apr 13, 2026","Paid",4],["Apr 13, 2026","fb",2],["Apr 13, 2026","notification",1],["Apr 13, 2026","undefined",7],["Apr 14, 2026","GE_Meta",4],["Apr 14, 2026","Paid",1],["Apr 14, 2026","notification",1],["Apr 14, 2026","undefined",4],["Apr 15, 2026","GE_Meta",1],["Apr 15, 2026","Self",2],["Apr 15, 2026","fb",1],["Apr 15, 2026","notification",3],["Apr 15, 2026","undefined",6],["Apr 16, 2026","GE_Meta",6],["Apr 16, 2026","Paid",1],["Apr 16, 2026","WATI_BOT",1],["Apr 16, 2026","download_banner",1],["Apr 16, 2026","fb",1],["Apr 16, 2026","notification",2],["Apr 16, 2026","undefined",7],["Apr 17, 2026","CRM_WA",1],["Apr 17, 2026","GE_Meta",1],["Apr 17, 2026","WATI_BOT",1],["Apr 17, 2026","notification",1]];
+
+const srcCats=['Direct','Paid','Push','Banner','Practitioner','Email','WhatsApp','Instagram','Other'];
+const srcColors=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#BA7517','#0F6E56','#D4537E','#B4B2A9'];
+
+function catSrc(s){const l=s.toLowerCase();if(l==='undefined')return 'Direct';if(['ge_meta','paid','fb','pmax','google'].includes(l))return 'Paid';if(['instagram','ig'].includes(l))return 'Instagram';if(['crm_wa','wa_channel','wa','wati_bot'].includes(l))return 'WhatsApp';if(l==='crm_email')return 'Email';if(['notification','app_push'].includes(l))return 'Push';if(['download_banner','trigger-banner','trigger_banner'].includes(l))return 'Banner';if(l==='self')return 'Practitioner';return 'Other';}
+
+let gran='daily';
+const charts={};
+
+function getBucketKey(d,g){
+  if(g==='daily')return d.toISOString().slice(0,10);
+  if(g==='monthly'){return d.toLocaleString('default',{month:'short'})+' '+d.getFullYear();}
+  const jan1=new Date(d.getFullYear(),0,1);const wk=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+  return d.getFullYear()+'-W'+String(wk).padStart(2,'0');
+}
+
+function getBucketLabel(key,g){
+  if(g==='daily'){const d=new Date(key);return d.getDate()+' '+d.toLocaleString('default',{month:'short'});}
+  return key;
+}
+
+function buildBuckets(rows,accessor,g,from,to){
+  const map={},order=[],firstDate={};
+  rows.forEach(r=>{
+    const d=new Date(r[0]);
+    if(d<from||d>to)return;
+    const key=getBucketKey(d,g);
+    if(!map[key]){map[key]={};order.push(key);firstDate[key]=d;}
+    accessor(map[key],r);
+  });
+  const sorted=order.filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>firstDate[a]-firstDate[b]);
+  return{keys:sorted,map,firstDate};
+}
+
+function makeChart(id,type,data,opts){
+  if(charts[id])charts[id].destroy();
+  const ctx=document.getElementById(id);
+  if(!ctx)return;
+  charts[id]=new Chart(ctx,{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},...opts}});
+}
+
+const axBase={x:{ticks:{font:{size:10},color:'#888780',maxTicksLimit:12,maxRotation:0},grid:{display:false}},y:{ticks:{font:{size:10},color:'#888780'},grid:{color:'rgba(136,135,128,0.1)'}}};
+
+function render(){
+  const from=new Date(document.getElementById('dateFrom').value);
+  const to=new Date(document.getElementById('dateTo').value);
+  to.setHours(23,59,59);
+
+  const {keys:crK,map:crM}=buildBuckets(CR_RAW,(b,r)=>{b.s=(b.s||0)+r[1];b.n=(b.n||0)+1;},gran,from,to);
+  const crV=crK.map(k=>+(crM[k].s/crM[k].n*100).toFixed(3));
+  const crAvg=crV.length?crV.reduce((a,b)=>a+b,0)/crV.length:0;
+
+  const {keys:roK,map:roM}=buildBuckets(ROAS_RAW.filter(r=>r[1]!==null&&r[1]<20),(b,r)=>{b.s=(b.s||0)+r[1];b.n=(b.n||0)+1;},gran,from,to);
+  const roV=roK.map(k=>+(roM[k].s/roM[k].n).toFixed(2));
+  const roAvg=roV.length?roV.reduce((a,b)=>a+b,0)/roV.length:0;
+
+  const {keys:nrK,map:nrM}=buildBuckets(NR_RAW,(b,r)=>{b.t=(b.t||0)+r[1];b.n=(b.n||0)+r[2];},gran,from,to);
+  const nrNew=nrK.map(k=>nrM[k].n||0);
+  const nrRep=nrK.map(k=>(nrM[k].t||0)-(nrM[k].n||0));
+  const nrPct=nrK.map(k=>nrM[k].t>0?+(nrM[k].n/nrM[k].t*100).toFixed(1):0);
+  const tNew=nrK.reduce((s,k)=>s+(nrM[k].n||0),0);
+  const tAll=nrK.reduce((s,k)=>s+(nrM[k].t||0),0);
+
+  const {keys:rvK,map:rvM}=buildBuckets(REV_RAW,(b,r)=>{b.g=(b.g||0)+r[1];b.o=(b.o||0)+r[2];},gran,from,to);
+  const rvG=rvK.map(k=>rvM[k].g||0);
+  const rvO=rvK.map(k=>rvM[k].o||0);
+  const rvPct=rvK.map(k=>{const t=(rvM[k].g||0)+(rvM[k].o||0);return t>0?+(rvM[k].o/t*100).toFixed(1):0;});
+  const tGrp=rvK.reduce((s,k)=>s+(rvM[k].g||0),0);
+  const tOne=rvK.reduce((s,k)=>s+(rvM[k].o||0),0);
+  const tRev=tGrp+tOne;
+
+  const {keys:srK,map:srM}=buildBuckets(SRC_RAW,(b,r)=>{const c=catSrc(r[1]);b[c]=(b[c]||0)+r[2];},gran,from,to);
+  const tDirect=srK.reduce((s,k)=>s+(srM[k]['Direct']||0),0);
+  const tSrc=srK.reduce((s,k)=>s+srcCats.reduce((ss,c)=>ss+(srM[k][c]||0),0),0);
+
+  document.getElementById('k-cr').textContent=crAvg.toFixed(2)+'%';
+  document.getElementById('k-roas').textContent=roAvg.toFixed(2)+'x';
+  document.getElementById('k-new').textContent=tAll>0?(tNew/tAll*100).toFixed(1)+'%':'—';
+  document.getElementById('k-1on1').textContent=tRev>0?(tOne/tRev*100).toFixed(1)+'%':'—';
+  document.getElementById('k-direct').textContent=tSrc>0?(tDirect/tSrc*100).toFixed(1)+'%':'—';
+
+  const lbl=k=>getBucketLabel(k,gran);
+
+  makeChart('c-cr','line',{labels:crK.map(lbl),datasets:[{data:crV,borderColor:'#378ADD',borderWidth:1.5,pointRadius:0,tension:0.3,fill:false}]},{scales:{...axBase,y:{...axBase.y,ticks:{...axBase.y.ticks,callback:v=>v.toFixed(1)+'%'}}}});
+
+  makeChart('c-roas','line',{labels:roK.map(lbl),datasets:[{label:'ROAS',data:roV,borderColor:'#1D9E75',borderWidth:1.5,pointRadius:0,tension:0.3,fill:false},{label:'Break-even',data:Array(roK.length).fill(1),borderColor:'rgba(136,135,128,0.45)',borderWidth:1,pointRadius:0,borderDash:[4,3]}]},{scales:{...axBase,y:{...axBase.y,min:0,ticks:{...axBase.y.ticks,callback:v=>v+'x'}}}});
+
+  makeChart('c-nr','bar',{labels:nrK.map(lbl),datasets:[{label:'New',data:nrNew,backgroundColor:'rgba(55,138,221,0.7)',stack:'s',borderWidth:0,borderRadius:0},{label:'Repeat',data:nrRep,backgroundColor:'rgba(216,90,48,0.65)',stack:'s',borderWidth:0,borderRadius:2},{label:'New %',data:nrPct,type:'line',borderColor:'#534AB7',borderWidth:1.5,pointRadius:0,tension:0.3,fill:false,yAxisID:'y2'}]},{scales:{x:{stacked:true,...axBase.x},y:{stacked:true,...axBase.y},y2:{position:'right',min:0,max:100,ticks:{font:{size:10},color:'#534AB7',callback:v=>v+'%'},grid:{display:false}}}});
+
+  makeChart('c-rev','bar',{labels:rvK.map(lbl),datasets:[{label:'Group',data:rvG,backgroundColor:'rgba(29,158,117,0.7)',stack:'s',borderWidth:0,borderRadius:0},{label:'1:1',data:rvO,backgroundColor:'rgba(83,74,183,0.65)',stack:'s',borderWidth:0,borderRadius:2},{label:'1:1%',data:rvPct,type:'line',borderColor:'#D85A30',borderWidth:1.5,pointRadius:0,tension:0.3,fill:false,yAxisID:'y2'}]},{scales:{x:{stacked:true,...axBase.x},y:{stacked:true,...axBase.y,ticks:{...axBase.y.ticks,callback:v=>'₹'+(v>=1000?(v/1000).toFixed(0)+'k':v)}},y2:{position:'right',min:0,max:100,ticks:{font:{size:10},color:'#D85A30',callback:v=>v+'%'},grid:{display:false}}}});
+
+  makeChart('c-src','bar',{labels:srK.map(lbl),datasets:srcCats.map((c,i)=>({label:c,data:srK.map(k=>srM[k][c]||0),backgroundColor:srcColors[i],stack:'s',borderWidth:0}))},{scales:{x:{stacked:true,...axBase.x},y:{stacked:true,...axBase.y}}});
+
+  const srcTotals=srcCats.map((c,i)=>({c,v:srK.reduce((s,k)=>s+(srM[k][c]||0),0),color:srcColors[i]})).filter(x=>x.v>0);
+  makeChart('c-src-pie','doughnut',{labels:srcTotals.map(x=>x.c),datasets:[{data:srcTotals.map(x=>x.v),backgroundColor:srcTotals.map(x=>x.color),borderWidth:1.5,borderColor:'rgba(0,0,0,0.06)'}]},{plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},color:'#888780',boxWidth:10,padding:8}}}});
+
+  const lg=document.getElementById('src-legend');
+  lg.innerHTML='';
+  srcCats.forEach((c,i)=>{
+    const tot=srK.reduce((s,k)=>s+(srM[k][c]||0),0);
+    if(!tot)return;
+    const el=document.createElement('div');
+    el.className='legend-item';
+    el.innerHTML=`<div class="legend-dot" style="background:${srcColors[i]}"></div>${c}`;
+    lg.appendChild(el);
+  });
+
+  buildInsights({crK,crV,roK,roV,nrK,nrNew,nrRep,nrPct,rvK,rvG,rvO,srK,srM});
+
+  /* ── compare chart data ── */
+  // Build a unified time axis: union of all bucket keys, sorted chronologically
+  const allKeysSet=new Set([...crK,...roK,...nrK,...rvK,...srK]);
+  // gather first-date for keys from whichever dataset has them
+  const allFirstDate={};
+  [{keys:crK,fd:buildBuckets(CR_RAW,()=>{},gran,from,to).firstDate},
+   {keys:roK,fd:buildBuckets(ROAS_RAW.filter(r=>r[1]!==null&&r[1]<20),()=>{},gran,from,to).firstDate},
+   {keys:nrK,fd:buildBuckets(NR_RAW,()=>{},gran,from,to).firstDate},
+   {keys:rvK,fd:buildBuckets(REV_RAW,()=>{},gran,from,to).firstDate},
+   {keys:srK,fd:buildBuckets(SRC_RAW,()=>{},gran,from,to).firstDate},
+  ].forEach(({keys,fd})=>keys.forEach(k=>{if(!allFirstDate[k])allFirstDate[k]=fd[k];}));
+  const cmpKeys=[...allKeysSet].sort((a,b)=>allFirstDate[a]-allFirstDate[b]);
+  const cmpLbl=cmpKeys.map(k=>getBucketLabel(k,gran));
+
+  // helper: min-max normalise an array, return {norm, min, max}
+  function minmax(arr){
+    const valid=arr.filter(v=>v!=null&&!isNaN(v));
+    const mn=Math.min(...valid),mx=Math.max(...valid);
+    const rng=mx-mn||1;
+    return{norm:arr.map(v=>v==null?null:+((v-mn)/rng).toFixed(4)),min:mn,max:mx};
+  }
+
+  // raw series mapped onto cmpKeys (null if bucket missing)
+  const rawCR   =cmpKeys.map(k=>crM[k] ?+(crM[k].s/crM[k].n*100).toFixed(3):null);
+  const rawRO   =cmpKeys.map(k=>roM[k] ?+(roM[k].s/roM[k].n).toFixed(2)     :null);
+  const rawNRpct=cmpKeys.map(k=>nrM[k] ?+(nrM[k].n/(nrM[k].t||1)*100).toFixed(1):null);
+  const rawRVpct=cmpKeys.map(k=>{if(!rvM[k])return null;const t=(rvM[k].g||0)+(rvM[k].o||0);return t?+(rvM[k].o/t*100).toFixed(1):null;});
+  const rawPurch=cmpKeys.map(k=>nrM[k]?(nrM[k].t||0):null);
+  const rawRev  =cmpKeys.map(k=>rvM[k]?+((rvM[k].g||0)+(rvM[k].o||0)).toFixed(0):null);
+  const rawDirPct=cmpKeys.map(k=>{if(!srM[k])return null;const t=srcCats.reduce((s,c)=>s+(srM[k][c]||0),0);return t?+(srM[k]['Direct']/t*100).toFixed(1):null;});
+  const rawPaidPct=cmpKeys.map(k=>{if(!srM[k])return null;const t=srcCats.reduce((s,c)=>s+(srM[k][c]||0),0);return t?+((srM[k]['Paid']||0)/t*100).toFixed(1):null;});
+
+  const cmpSeries=[
+    {label:'Conversion Rate', color:'#378ADD', unit:'%',  raw:rawCR,    fmt:v=>v.toFixed(2)+'%'},
+    {label:'ROAS',            color:'#1D9E75', unit:'×',  raw:rawRO,    fmt:v=>v.toFixed(2)+'×'},
+    {label:'New buyer %',     color:'#534AB7', unit:'%',  raw:rawNRpct, fmt:v=>v.toFixed(1)+'%'},
+    {label:'1:1 rev share',   color:'#D85A30', unit:'%',  raw:rawRVpct, fmt:v=>v.toFixed(1)+'%'},
+    {label:'Total purchases', color:'#BA7517', unit:'',   raw:rawPurch, fmt:v=>Math.round(v)+' purchases'},
+    {label:'Total revenue',   color:'#0F6E56', unit:'₹',  raw:rawRev,   fmt:v=>v>=1000?'₹'+(v/1000).toFixed(1)+'k':'₹'+Math.round(v)},
+    {label:'Direct %',        color:'#D4537E', unit:'%',  raw:rawDirPct,fmt:v=>v.toFixed(1)+'%'},
+    {label:'Paid %',          color:'#888780', unit:'%',  raw:rawPaidPct,fmt:v=>v.toFixed(1)+'%'},
+  ].map(s=>({...s,...minmax(s.raw)}));
+
+  buildCompareChart(cmpKeys,cmpLbl,cmpSeries);
+}
+
+/* ── compare chart ─────────────────────────────────────────── */
+const cmpVisible={};
+let _cmpSeries=[];
+const CMP_PRESETS=[
+  {label:'Revenue',    keys:['Total revenue','1:1 rev share','Total purchases']},
+  {label:'Funnel',     keys:['Conversion Rate','New buyer %','Total purchases']},
+  {label:'Paid',       keys:['ROAS','Paid %','Conversion Rate']},
+  {label:'Channels',   keys:['Direct %','Paid %']},
+  {label:'Efficiency', keys:['ROAS','Conversion Rate','1:1 rev share']},
+];
+
+function applyPreset(seriesLabels,allSeries,presetName){
+  const set=new Set(seriesLabels);
+  allSeries.forEach(s=>{cmpVisible[s.label]=set.has(s.label);});
+  refreshCmpToggles(allSeries);
+  if(charts['c-compare']){
+    allSeries.forEach((s,i)=>charts['c-compare'].setDatasetVisibility(i,cmpVisible[s.label]));
+    charts['c-compare'].update();
+  }
+  // highlight active row in the preset table
+  document.querySelectorAll('#cmp-preset-table .preset-row').forEach(r=>{
+    const active=presetName&&r.dataset.preset===presetName;
+    r.style.background=active?'var(--bg-secondary)':'';
+  });
+  // scroll chart into view smoothly
+  const chart=document.getElementById('c-compare');
+  if(chart)chart.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function applyPresetByName(name){
+  if(!_cmpSeries.length)return;
+  if(name==='__all'){
+    applyPreset(_cmpSeries.map(s=>s.label),_cmpSeries,'__all');
+  } else {
+    const p=CMP_PRESETS.find(x=>x.label===name);
+    if(p)applyPreset(p.keys,_cmpSeries,name);
+  }
+}
+
+function refreshCmpToggles(series){
+  document.querySelectorAll('#cmp-toggles .cmp-toggle').forEach((btn,i)=>{
+    const on=cmpVisible[series[i].label];
+    btn.classList.toggle('on',on);
+    btn.classList.toggle('off',!on);
+  });
+}
+
+function buildCompareChart(keys,labels,series){
+  _cmpSeries=series;
+  // init visibility state (default all on)
+  series.forEach(s=>{if(cmpVisible[s.label]===undefined)cmpVisible[s.label]=true;});
+
+  // preset buttons
+  const presetWrap=document.getElementById('cmp-presets');
+  if(presetWrap.innerHTML===''){  // only build once
+    const lbl=document.createElement('span');
+    lbl.className='compare-presets-label';
+    lbl.textContent='Quick select';
+    presetWrap.appendChild(lbl);
+    CMP_PRESETS.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.className='preset-btn';
+      btn.textContent=p.label;
+      btn.onclick=()=>applyPreset(p.keys,series,p.label);
+      presetWrap.appendChild(btn);
+    });
+    const div=document.createElement('span');
+    div.className='preset-divider';
+    presetWrap.appendChild(div);
+    [{t:'All',fn:()=>applyPreset(series.map(s=>s.label),series,'__all')},
+     {t:'None',fn:()=>applyPreset([],series,null)}
+    ].forEach(({t,fn})=>{
+      const btn=document.createElement('button');
+      btn.className='preset-btn preset-util';
+      btn.textContent=t;
+      btn.onclick=fn;
+      presetWrap.appendChild(btn);
+    });
+  } else {
+    // update onclick closures so they reference the latest series after re-render
+    const btns=presetWrap.querySelectorAll('.preset-btn:not(.preset-util)');
+    CMP_PRESETS.forEach((p,i)=>{btns[i].onclick=()=>applyPreset(p.keys,series,p.label);});
+    const utils=presetWrap.querySelectorAll('.preset-util');
+    utils[0].onclick=()=>applyPreset(series.map(s=>s.label),series,'__all');
+    utils[1].onclick=()=>applyPreset([],series,null);
+  }
+
+  // toggle buttons
+  const wrap=document.getElementById('cmp-toggles');
+  wrap.innerHTML='';
+  series.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    btn.className='cmp-toggle '+(cmpVisible[s.label]?'on':'off');
+    btn.innerHTML=`<span class="cmp-dot" style="background:${s.color}"></span>${s.label}`;
+    btn.onclick=()=>{
+      cmpVisible[s.label]=!cmpVisible[s.label];
+      btn.classList.toggle('on',cmpVisible[s.label]);
+      btn.classList.toggle('off',!cmpVisible[s.label]);
+      if(charts['c-compare']){
+        charts['c-compare'].setDatasetVisibility(i,cmpVisible[s.label]);
+        charts['c-compare'].update();
+      }
+    };
+    wrap.appendChild(btn);
+  });
+
+  // build datasets
+  const datasets=series.map((s,i)=>({
+    label:s.label,
+    data:s.norm,
+    borderColor:s.color,
+    backgroundColor:s.color+'22',
+    borderWidth:1.5,
+    pointRadius:0,
+    pointHoverRadius:4,
+    tension:0.3,
+    fill:false,
+    hidden:!cmpVisible[s.label],
+    // stash for tooltip
+    _raw:s.raw,
+    _fmt:s.fmt,
+    _min:s.min,
+    _max:s.max,
+  }));
+
+  if(charts['c-compare'])charts['c-compare'].destroy();
+  const ctx=document.getElementById('c-compare');
+  if(!ctx)return;
+  charts['c-compare']=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:items=>items[0]?.label||'',
+            label:item=>{
+              const ds=item.chart.data.datasets[item.datasetIndex];
+              const raw=ds._raw[item.dataIndex];
+              if(raw==null)return null;
+              return ' '+ds.label+': '+ds._fmt(raw);
+            },
+          },
+          filter:item=>{
+            const ds=item.chart.data.datasets[item.datasetIndex];
+            return ds._raw[item.dataIndex]!=null;
+          },
+        },
+      },
+      scales:{
+        x:{
+          ticks:{font:{size:10},color:'#888780',maxTicksLimit:18,maxRotation:0},
+          grid:{display:false},
+        },
+        y:{
+          min:0,max:1,
+          ticks:{font:{size:10},color:'#888780',callback:v=>v===0?'min':v===1?'max':v===0.5?'mid':''},
+          grid:{color:'rgba(136,135,128,0.1)'},
+        },
+      },
+    },
+  });
+}
+
+function setGranularity(g){
+  gran=g;
+  ['daily','weekly','monthly'].forEach(x=>document.getElementById('g-'+x).classList.remove('active'));
+  document.getElementById('g-'+g).classList.add('active');
+  render();
+}
+
+function applyRange(){render();}
+
+/* ── tab switching ─────────────────────────────────────────── */
+function _doSwitchTab(tab){
+  ['charts','insights','report','compare'].forEach(t=>
+    document.getElementById('tab-'+t).style.display=tab===t?'':'none'
+  );
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+}
+function switchTab(tab){
+  if(document.startViewTransition){
+    document.startViewTransition(()=>_doSwitchTab(tab));
+  } else {
+    _doSwitchTab(tab);
+  }
+}
+
+/* ── insights builder ──────────────────────────────────────── */
+function buildInsights(data){
+  const {crK,crV,roK,roV,nrK,nrNew,nrRep,nrPct,rvK,rvG,rvO,srK,srM}=data;
+  const lbl=k=>getBucketLabel(k,gran);
+  const rows=[];
+
+  /* helpers */
+  const halfAvg=(arr,first)=>{const h=Math.floor(arr.length/2);const sl=first?arr.slice(0,h):arr.slice(-h);return sl.length?sl.reduce((a,b)=>a+b,0)/sl.length:0;};
+  const pct=(n,d)=>d?+(n/d*100).toFixed(1):0;
+
+  /* ── CONVERSION RATE ── */
+  if(crK.length){
+    const maxCR=crK.reduce((m,k,i)=>crV[i]>crV[m[1]]?[k,i]:m,[crK[0],0]);
+    const nonZero=crV.map((v,i)=>({v,k:crK[i]})).filter(x=>x.v>0);
+    const minCR=nonZero.length?nonZero.reduce((m,x)=>x.v<m.v?x:m,nonZero[0]):null;
+    const h1=halfAvg(crV,true),h2=halfAvg(crV,false);
+    const diff=+(h2-h1).toFixed(2);
+
+    rows.push({cat:'cr',obs:`Peak conversion rate`,detail:lbl(maxCR[0]),val:(crV[maxCR[1]]).toFixed(2)+'%',dir:'neu'});
+    if(minCR) rows.push({cat:'cr',obs:`Lowest non-zero CR`,detail:lbl(minCR.k),val:minCR.v.toFixed(2)+'%',dir:'neu'});
+    if(crK.length>=4) rows.push({cat:'cr',obs:`CR trend (first half → second half)`,detail:'period-over-period',val:(diff>=0?'+':'')+diff+'pp',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── ROAS ── */
+  if(roK.length){
+    const maxRO=roK.reduce((m,k,i)=>roV[i]>roV[m[1]]?[k,i]:m,[roK[0],0]);
+    const aboveBreak=roV.filter(v=>v>=1).length;
+    const h1=halfAvg(roV,true),h2=halfAvg(roV,false);
+    const diff=+(h2-h1).toFixed(2);
+
+    rows.push({cat:'roas',obs:`Best ROAS period`,detail:lbl(maxRO[0]),val:roV[maxRO[1]].toFixed(2)+'x',dir:'neu'});
+    rows.push({cat:'roas',obs:`Periods at or above break-even (1×)`,detail:`${aboveBreak} of ${roK.length} ${gran} buckets`,val:pct(aboveBreak,roK.length)+'%',dir:aboveBreak/roK.length>=0.6?'up':'down'});
+    if(roK.length>=4) rows.push({cat:'roas',obs:`ROAS trend (first half → second half)`,detail:'period-over-period',val:(diff>=0?'+':'')+diff+'x',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── NEW vs REPEAT ── */
+  if(nrK.length){
+    const tNew=nrNew.reduce((a,b)=>a+b,0);
+    const tAll=tNew+nrRep.reduce((a,b)=>a+b,0);
+    const maxNew=nrK.reduce((m,k,i)=>nrPct[i]>nrPct[m[1]]?[k,i]:m,[nrK[0],0]);
+    const maxVol=nrK.reduce((m,k,i)=>(nrNew[i]+nrRep[i])>(nrNew[m[1]]+nrRep[m[1]])?[k,i]:m,[nrK[0],0]);
+    const h1=halfAvg(nrPct,true),h2=halfAvg(nrPct,false);
+    const diff=+(h2-h1).toFixed(1);
+
+    rows.push({cat:'buyers',obs:`Overall new buyer share`,detail:`${tNew} new of ${tAll} total purchases`,val:pct(tNew,tAll)+'%',dir:pct(tNew,tAll)>=50?'up':'neu'});
+    rows.push({cat:'buyers',obs:`Highest new-buyer period`,detail:lbl(maxNew[0]),val:nrPct[maxNew[1]].toFixed(1)+'%',dir:'neu'});
+    rows.push({cat:'buyers',obs:`Peak purchase volume period`,detail:lbl(maxVol[0]),val:(nrNew[maxVol[1]]+(nrRep[maxVol[1]]||0))+' purchases',dir:'neu'});
+    if(nrK.length>=4) rows.push({cat:'buyers',obs:`New-buyer ratio trend`,detail:'first half → second half',val:(diff>=0?'+':'')+diff+'pp',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── REVENUE MIX ── */
+  if(rvK.length){
+    const tG=rvG.reduce((a,b)=>a+b,0),tO=rvO.reduce((a,b)=>a+b,0),tT=tG+tO;
+    const totals=rvK.map((k,i)=>rvG[i]+rvO[i]);
+    const maxRev=rvK.reduce((m,k,i)=>totals[i]>totals[m[1]]?[k,i]:m,[rvK[0],0]);
+    const oPct=rvK.map((k,i)=>totals[i]>0?+(rvO[i]/totals[i]*100).toFixed(1):0);
+    const h1=halfAvg(oPct,true),h2=halfAvg(oPct,false);
+    const diff=+(h2-h1).toFixed(1);
+    const fmt=v=>v>=1e5?'₹'+(v/1000).toFixed(0)+'k':v>=1000?'₹'+(v/1000).toFixed(1)+'k':'₹'+v;
+
+    rows.push({cat:'rev',obs:`1:1 session revenue share`,detail:`${fmt(tO)} of ${fmt(tT)} total`,val:pct(tO,tT)+'%',dir:'neu'});
+    rows.push({cat:'rev',obs:`Peak revenue period`,detail:lbl(maxRev[0]),val:fmt(totals[maxRev[1]]),dir:'neu'});
+    if(rvK.length>=4) rows.push({cat:'rev',obs:`1:1 share trend`,detail:'first half → second half',val:(diff>=0?'+':'')+diff+'pp',dir:diff>=0?'up':'down'});
+  }
+
+  /* ── PURCHASE SOURCE ── */
+  if(srK.length){
+    const totByCat=srcCats.map(c=>srK.reduce((s,k)=>s+(srM[k][c]||0),0));
+    const grand=totByCat.reduce((a,b)=>a+b,0);
+    const ranked=srcCats.map((c,i)=>({c,v:totByCat[i]})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+    const top3=ranked.slice(0,3).map(x=>`${x.c} ${pct(x.v,grand)}%`).join(' · ');
+    const directV=totByCat[srcCats.indexOf('Direct')]||0;
+
+    rows.push({cat:'src',obs:`Top source channel`,detail:`${pct(ranked[0]?.v||0,grand)}% of period purchases`,val:ranked[0]?.c||'—',dir:'neu'});
+    rows.push({cat:'src',obs:`Top 3 channels`,detail:top3,val:'',dir:'neu'});
+    rows.push({cat:'src',obs:`Self-initiated / Direct purchases`,detail:`${directV} purchases`,val:pct(directV,grand)+'%',dir:'neu'});
+  }
+
+  /* render */
+  const sections=[
+    {key:'cr',    label:'Conversion Rate'},
+    {key:'roas',  label:'ROAS'},
+    {key:'buyers',label:'New vs Repeat Buyers'},
+    {key:'rev',   label:'Revenue Mix'},
+    {key:'src',   label:'Purchase Source'},
+  ];
+  let html='';
+  sections.forEach(({key,label})=>{
+    const sec=rows.filter(r=>r.cat===key);
+    if(!sec.length)return;
+    html+=`<div class="insights-section">
+      <div class="insights-section-title">${label}</div>
+      <table class="insights-table">
+        <thead><tr><th style="width:110px">metric</th><th>observation</th><th style="width:180px">detail</th><th style="width:100px;text-align:right">value</th></tr></thead>
+        <tbody>`;
+    sec.forEach(r=>{
+      const arrow=r.dir==='up'?' ↑':r.dir==='down'?' ↓':'';
+      html+=`<tr>
+        <td><span class="ins-metric ${r.cat}">${label.split(' ')[0]}</span></td>
+        <td class="ins-obs">${r.obs}</td>
+        <td class="ins-detail">${r.detail}</td>
+        <td class="ins-value ${r.dir}">${r.val}${arrow?`<span class="ins-arrow">${arrow}</span>`:''}
+        </td>
+      </tr>`;
+    });
+    html+='</tbody></table></div>';
+  });
+  document.getElementById('ins-body').innerHTML=html;
+}
+
+render();
+</script>
+</body>
+</html>
