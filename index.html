@@ -2721,6 +2721,24 @@ function drawRetentionCurves(){
   // cohort toggles
   const wrap=document.getElementById('ret-cohort-toggles');
   wrap.innerHTML='';
+  const mkBulk=(label,fn)=>{
+    const b=document.createElement('button');
+    b.textContent=label;
+    b.style.cssText=`padding:4px 10px;font-size:11px;border:0.5px solid var(--border);background:var(--bg-secondary);color:var(--text);border-radius:14px;cursor:pointer;font-weight:500;`;
+    b.onclick=fn;
+    return b;
+  };
+  wrap.appendChild(mkBulk('Select all',()=>{
+    data.forEach(r=>retentionVisibleCohorts[r[0]]=true);
+    drawRetentionCurves();
+  }));
+  wrap.appendChild(mkBulk('Select none',()=>{
+    data.forEach(r=>retentionVisibleCohorts[r[0]]=false);
+    drawRetentionCurves();
+  }));
+  const sep=document.createElement('span');
+  sep.style.cssText='display:inline-block;width:1px;background:var(--border);margin:0 4px;align-self:stretch;';
+  wrap.appendChild(sep);
   data.forEach((r,i)=>{
     const cohort=r[0];
     if(!(cohort in retentionVisibleCohorts)) retentionVisibleCohorts[cohort]=true;
