@@ -889,12 +889,18 @@ const charts={};
 function getBucketKey(d,g){
   if(g==='daily')return d.toISOString().slice(0,10);
   if(g==='monthly'){return d.toLocaleString('default',{month:'short'})+' '+d.getFullYear();}
-  const jan1=new Date(d.getFullYear(),0,1);const wk=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
-  return d.getFullYear()+'-W'+String(wk).padStart(2,'0');
+  const day=d.getDay();const diff=day===0?-6:1-day;
+  const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()+diff);
+  return mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
 }
 
 function getBucketLabel(key,g){
   if(g==='daily'){const d=new Date(key);return d.getDate()+' '+d.toLocaleString('default',{month:'short'});}
+  if(g==='weekly'){
+    const mon=new Date(key);const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+    const m1=mon.toLocaleString('default',{month:'short'});const m2=sun.toLocaleString('default',{month:'short'});
+    return m1===m2?`${m1} ${mon.getDate()}–${sun.getDate()}`:`${m1} ${mon.getDate()}–${m2} ${sun.getDate()}`;
+  }
   return key;
 }
 
