@@ -1084,9 +1084,13 @@
     </div>
 
     <div class="chart-card">
-      <div class="card-title">daily metric · release markers</div>
-      <div class="chart-wrap" style="height:380px"><canvas id="c-releases" role="img" aria-label="Release impact chart">Release impact chart</canvas></div>
-      <div style="font-size:11px;color:var(--text-tertiary);margin-top:10px;display:flex;gap:18px;flex-wrap:wrap;">
+      <div class="card-title">daily metric · release markers <span style="font-weight:400;color:var(--text-tertiary);font-size:11px;margin-left:8px;">scroll horizontally →</span></div>
+      <div id="rel-scroll" style="overflow-x:auto;overflow-y:hidden;border-radius:6px;">
+        <div id="rel-canvas-wrap" style="height:440px;position:relative;">
+          <canvas id="c-releases" role="img" aria-label="Release impact chart">Release impact chart</canvas>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:12px;display:flex;gap:18px;flex-wrap:wrap;align-items:center;">
         <span><span style="display:inline-block;width:24px;height:0;border-top:1.5px solid #C9472A;border-style:dashed;vertical-align:middle;margin-right:4px;"></span>High impact</span>
         <span><span style="display:inline-block;width:24px;height:0;border-top:1.5px solid #BA7517;border-style:dashed;vertical-align:middle;margin-right:4px;"></span>Medium</span>
         <span><span style="display:inline-block;width:24px;height:0;border-top:1.5px solid #888780;border-style:dashed;vertical-align:middle;margin-right:4px;"></span>Low</span>
@@ -1094,18 +1098,18 @@
       </div>
     </div>
 
-    <div style="margin-top:24px;overflow-x:auto;">
+    <div style="margin-top:24px;">
       <div class="insights-section-title" style="margin-bottom:8px">Release impact (pre vs post window)</div>
-      <table class="insights-table" id="rel-table">
+      <table class="insights-table" id="rel-table" style="table-layout:fixed;width:100%;">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Ver</th>
-            <th>Impact</th>
+            <th style="width:88px;">Date</th>
+            <th style="width:54px;">Ver</th>
+            <th style="width:90px;">Impact</th>
             <th>Summary</th>
-            <th style="text-align:right">Pre avg</th>
-            <th style="text-align:right">Post avg</th>
-            <th style="text-align:right">Δ</th>
+            <th style="width:84px;text-align:right;">Pre avg</th>
+            <th style="width:84px;text-align:right;">Post avg</th>
+            <th style="width:64px;text-align:right;">Δ</th>
           </tr>
         </thead>
         <tbody id="rel-tbody"></tbody>
@@ -2374,6 +2378,10 @@ function renderReleases(){
     }
   };
 
+  const pxPerDay=10;
+  const wrap=document.getElementById('rel-canvas-wrap');
+  wrap.style.width=Math.max(labels.length*pxPerDay,900)+'px';
+
   if(charts['c-releases'])charts['c-releases'].destroy();
   charts['c-releases']=new Chart(document.getElementById('c-releases'),{
     type:'line',
@@ -2392,12 +2400,18 @@ function renderReleases(){
         }}
       },
       scales:{
-        x:{ticks:{font:{size:10},color:'#888780',maxTicksLimit:14,maxRotation:0},grid:{display:false}},
+        x:{ticks:{font:{size:10},color:'#888780',maxTicksLimit:30,maxRotation:45,minRotation:0,autoSkip:true},grid:{display:false}},
         y:{ticks:{font:{size:10},color:'#888780'},grid:{color:'rgba(136,135,128,0.1)'}}
       }
     },
     plugins:[releaseMarkerPlugin]
   });
+
+  const scroller=document.getElementById('rel-scroll');
+  if(scroller && !scroller.dataset.scrolled){
+    scroller.scrollLeft=scroller.scrollWidth;
+    scroller.dataset.scrolled='1';
+  }
 
   const tb=document.getElementById('rel-tbody');
   tb.innerHTML=[...RELEASES].reverse().map((r,reverseIdx)=>{
@@ -2412,11 +2426,12 @@ function renderReleases(){
       stats.delta>0?'#1D9E75':'#D85A30';
     const impColor=RELEASE_IMPACT_COLOR[r.impact];
     const sel=releaseFocusIdx===origIdx?'background:var(--bg-secondary);':'';
+    const safeSummary=r.summary.replace(/"/g,'&quot;');
     return `<tr style="cursor:pointer;${sel}" onclick="focusRelease(${origIdx})">
       <td style="white-space:nowrap;font-variant-numeric:tabular-nums;">${r.date}</td>
       <td style="font-variant-numeric:tabular-nums;">v${r.version}</td>
       <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${impColor};margin-right:5px;"></span>${r.impact}</td>
-      <td style="font-size:12px;color:var(--text-secondary);">${r.summary}</td>
+      <td style="font-size:12px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${safeSummary}">${r.summary}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;">${fmt(stats.pre)}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;">${fmt(stats.post)}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;color:${deltaColor};font-weight:${stats.delta!=null&&Math.abs(stats.delta)>=10?500:400};">${deltaStr}</td>
@@ -2426,6 +2441,20 @@ function renderReleases(){
 
 function focusRelease(idx){
   releaseFocusIdx=releaseFocusIdx===idx?null:idx;
+  const r=RELEASES[idx];
+  if(r){
+    const metricKey=document.getElementById('rel-metric').value;
+    const series=RELEASE_METRICS[metricKey].build();
+    const targetLabel=formatLabelDate(r.date);
+    const idxInSeries=series.findIndex(([d])=>d===targetLabel);
+    const wrap=document.getElementById('rel-canvas-wrap');
+    const scroller=document.getElementById('rel-scroll');
+    if(idxInSeries>=0 && wrap && scroller){
+      const ratio=idxInSeries/series.length;
+      const targetX=ratio*wrap.offsetWidth - scroller.clientWidth/2;
+      scroller.scrollLeft=Math.max(0,targetX);
+    }
+  }
   renderReleases();
 }
 
