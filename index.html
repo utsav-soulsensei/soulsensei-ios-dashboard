@@ -919,10 +919,14 @@
     </div>
 
     <div style="margin-top:36px;padding-top:24px;border-top:0.5px solid var(--border);">
-      <div class="insights-section-title" style="margin-bottom:6px">Paid Course PDP → Purchase (logged-out users)</div>
-      <p class="compare-note" style="margin-top:0">Sequential funnel: Paid Course PDP view → Register click → Cart → Send OTP → Login → Purchase. Aug 2025 excluded due to insufficient data.</p>
+      <div class="insights-section-title" style="margin-bottom:6px">Paid Course PDP → Purchase</div>
+      <p class="compare-note" style="margin-top:0" id="paid-funnel-desc">Sequential funnel from Paid Course PDP view through to Purchase. Toggle between logged-out (6 steps incl. OTP + Login) and logged-in (5 steps, no auth). Aug 2025 excluded due to insufficient data.</p>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-        <label style="font-size:12px;color:var(--text-secondary);">Month:</label>
+        <div style="display:inline-flex;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;">
+          <button id="pf-mode-loggedout" onclick="setPaidFunnelMode('loggedout')" style="padding:6px 12px;border:0;background:var(--bg-secondary);color:var(--text);font-size:12px;cursor:pointer;">Logged-out</button>
+          <button id="pf-mode-loggedin" onclick="setPaidFunnelMode('loggedin')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">Logged-in</button>
+        </div>
+        <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">Month:</label>
         <select id="paid-funnel-month" onchange="renderPaidFunnel()" style="padding:6px 10px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></select>
         <span id="paid-funnel-meta" style="font-size:12px;color:var(--text-tertiary);"></span>
       </div>
@@ -974,7 +978,7 @@ const REV_RAW=[["Oct 1, 2025",12193,0],["Oct 2, 2025",14146,0],["Oct 3, 2025",32
 
 const SRC_RAW=[["Oct 1, 2025","crm_email",1],["Oct 1, 2025","notification",1],["Oct 1, 2025","trigger-banner",1],["Oct 1, 2025","undefined",8],["Oct 2, 2025","CRM_WA",1],["Oct 2, 2025","GE_Meta",1],["Oct 2, 2025","Paid",1],["Oct 2, 2025","crm_email",1],["Oct 2, 2025","notification",2],["Oct 2, 2025","trigger-banner",1],["Oct 2, 2025","undefined",5],["Oct 3, 2025","Self",1],["Oct 3, 2025","undefined",3],["Oct 3, 2025","website",1],["Oct 4, 2025","undefined",4],["Oct 5, 2025","undefined",5],["Oct 6, 2025","Paid",1],["Oct 6, 2025","undefined",5],["Oct 7, 2025","GE_Meta",2],["Oct 7, 2025","Paid",1],["Oct 7, 2025","notification",2],["Oct 7, 2025","undefined",8],["Oct 8, 2025","crm_email",1],["Oct 8, 2025","undefined",3],["Oct 9, 2025","GE_Meta",1],["Oct 9, 2025","WA",1],["Oct 9, 2025","undefined",9],["Oct 10, 2025","undefined",5],["Oct 11, 2025","CRM_WA",2],["Oct 11, 2025","Self",1],["Oct 11, 2025","notification",1],["Oct 11, 2025","undefined",3],["Oct 12, 2025","Self",1],["Oct 12, 2025","undefined",4],["Oct 12, 2025","website",1],["Oct 13, 2025","GE_Meta",1],["Oct 13, 2025","Self",1],["Oct 13, 2025","WA",1],["Oct 13, 2025","notification",2],["Oct 13, 2025","trigger-banner",1],["Oct 13, 2025","undefined",6],["Oct 14, 2025","Paid",1],["Oct 14, 2025","notification",2],["Oct 14, 2025","undefined",6],["Oct 15, 2025","GE_Meta",1],["Oct 15, 2025","notification",2],["Oct 15, 2025","trigger-banner",1],["Oct 15, 2025","undefined",3],["Oct 16, 2025","Paid",1],["Oct 16, 2025","undefined",5],["Oct 17, 2025","GE_Meta",1],["Oct 17, 2025","undefined",2],["Oct 18, 2025","CRM_WA",1],["Oct 18, 2025","GE_Meta",2],["Oct 18, 2025","undefined",2],["Oct 19, 2025","GE_Meta",1],["Oct 19, 2025","undefined",4],["Oct 20, 2025","GE_Meta",1],["Oct 20, 2025","undefined",2],["Oct 21, 2025","Self",1],["Oct 21, 2025","notification",1],["Oct 21, 2025","undefined",4],["Oct 22, 2025","notification",1],["Oct 22, 2025","undefined",6],["Oct 23, 2025","undefined",9],["Oct 24, 2025","Paid",2],["Oct 24, 2025","Self",1],["Oct 24, 2025","crm_email",1],["Oct 24, 2025","undefined",16],["Oct 25, 2025","notification",2],["Oct 25, 2025","trigger-banner",1],["Oct 25, 2025","undefined",6],["Oct 26, 2025","CRM_WA",1],["Oct 26, 2025","undefined",5],["Oct 27, 2025","Self",1],["Oct 27, 2025","notification",1],["Oct 27, 2025","undefined",5],["Oct 28, 2025","notification",2],["Oct 28, 2025","undefined",14],["Oct 29, 2025","GE_Meta",2],["Oct 29, 2025","Linktree",1],["Oct 29, 2025","Self",2],["Oct 29, 2025","notification",3],["Oct 29, 2025","undefined",11],["Oct 30, 2025","notification",2],["Oct 30, 2025","undefined",12],["Oct 31, 2025","GE_Meta",1],["Oct 31, 2025","Paid",1],["Oct 31, 2025","crm_email",1],["Oct 31, 2025","undefined",2],["Nov 1, 2025","notification",1],["Nov 1, 2025","undefined",6],["Nov 2, 2025","notification",2],["Nov 2, 2025","undefined",7],["Nov 3, 2025","GE_Meta",1],["Nov 3, 2025","Self",1],["Nov 3, 2025","shared",1],["Nov 3, 2025","undefined",3],["Nov 4, 2025","GE_Meta",2],["Nov 4, 2025","Self",1],["Nov 4, 2025","crm_email",1],["Nov 4, 2025","undefined",7],["Nov 5, 2025","GE_Meta",1],["Nov 5, 2025","undefined",4],["Nov 6, 2025","trigger-banner",1],["Nov 6, 2025","undefined",6],["Nov 7, 2025","Paid",1],["Nov 7, 2025","ig",1],["Nov 7, 2025","undefined",9],["Nov 8, 2025","GE_Meta",1],["Nov 8, 2025","Paid",1],["Nov 8, 2025","crm_email",2],["Nov 8, 2025","undefined",4],["Nov 9, 2025","undefined",4],["Nov 9, 2025","website",1],["Nov 10, 2025","CRM_WA",1],["Nov 10, 2025","GE_Meta",1],["Nov 10, 2025","crm_email",1],["Nov 10, 2025","shared",1],["Nov 10, 2025","undefined",14],["Nov 11, 2025","GE_Meta",2],["Nov 11, 2025","app_push",3],["Nov 11, 2025","notification",2],["Nov 11, 2025","undefined",29],["Nov 12, 2025","undefined",6],["Nov 13, 2025","Self",2],["Nov 13, 2025","notification",4],["Nov 13, 2025","undefined",6],["Nov 14, 2025","GE_Meta",1],["Nov 14, 2025","undefined",13],["Nov 15, 2025","GE_Meta",1],["Nov 15, 2025","notification",1],["Nov 15, 2025","undefined",5],["Nov 16, 2025","Self",3],["Nov 16, 2025","notification",1],["Nov 16, 2025","undefined",6],["Nov 17, 2025","GE_Meta",1],["Nov 17, 2025","Self",1],["Nov 17, 2025","crm_email",2],["Nov 17, 2025","undefined",6],["Nov 18, 2025","Self",4],["Nov 18, 2025","undefined",6],["Nov 19, 2025","GE_Meta",2],["Nov 19, 2025","Self",3],["Nov 19, 2025","WA_Channel",1],["Nov 19, 2025","crm_email",1],["Nov 19, 2025","notification",1],["Nov 19, 2025","trigger-banner",2],["Nov 19, 2025","undefined",18],["Nov 20, 2025","GE_Meta",1],["Nov 20, 2025","Instagram",1],["Nov 20, 2025","Self",1],["Nov 20, 2025","undefined",6],["Nov 21, 2025","Self",3],["Nov 21, 2025","undefined",5],["Nov 22, 2025","CRM_WA",1],["Nov 22, 2025","Paid",1],["Nov 22, 2025","Self",2],["Nov 22, 2025","notification",2],["Nov 22, 2025","trigger-banner",1],["Nov 22, 2025","undefined",13],["Nov 23, 2025","undefined",8],["Nov 24, 2025","GE_Meta",1],["Nov 24, 2025","undefined",4],["Nov 25, 2025","undefined",3],["Nov 26, 2025","undefined",5],["Nov 26, 2025","website",1],["Nov 27, 2025","Paid",1],["Nov 27, 2025","app_push",1],["Nov 27, 2025","crm_email",1],["Nov 27, 2025","undefined",8],["Nov 28, 2025","Paid",1],["Nov 28, 2025","app_push",2],["Nov 28, 2025","undefined",10],["Nov 29, 2025","Self",1],["Nov 29, 2025","undefined",7],["Nov 30, 2025","undefined",4],["Dec 1, 2025","app_push",1],["Dec 1, 2025","crm_email",2],["Dec 1, 2025","download_banner",1],["Dec 1, 2025","undefined",14],["Dec 2, 2025","Paid",1],["Dec 2, 2025","ig",1],["Dec 2, 2025","undefined",7],["Dec 3, 2025","GE_Meta",1],["Dec 3, 2025","undefined",5],["Dec 4, 2025","GE_Meta",1],["Dec 4, 2025","Self",1],["Dec 4, 2025","app_push",2],["Dec 4, 2025","crm_email",2],["Dec 4, 2025","download_banner",1],["Dec 4, 2025","undefined",4],["Dec 5, 2025","app_push",4],["Dec 5, 2025","undefined",8],["Dec 6, 2025","crm_email",1],["Dec 6, 2025","notification",1],["Dec 6, 2025","trigger-banner",2],["Dec 6, 2025","undefined",8],["Dec 7, 2025","GE_Meta",1],["Dec 7, 2025","Instagram",1],["Dec 7, 2025","download_banner",2],["Dec 7, 2025","undefined",9],["Dec 8, 2025","GE_Meta",1],["Dec 8, 2025","Self",1],["Dec 8, 2025","app_push",1],["Dec 8, 2025","undefined",7],["Dec 9, 2025","Self",2],["Dec 9, 2025","notification",1],["Dec 9, 2025","undefined",6],["Dec 10, 2025","CRM_WA",1],["Dec 10, 2025","Self",1],["Dec 10, 2025","undefined",5],["Dec 11, 2025","GE_Meta",1],["Dec 11, 2025","Self",1],["Dec 11, 2025","notification",2],["Dec 11, 2025","undefined",11],["Dec 12, 2025","GE_Meta",1],["Dec 12, 2025","Instagram",1],["Dec 12, 2025","Self",1],["Dec 12, 2025","app_push",5],["Dec 12, 2025","trigger-banner",1],["Dec 12, 2025","undefined",17],["Dec 13, 2025","GE_Meta",1],["Dec 13, 2025","undefined",10],["Dec 14, 2025","GE_Meta",4],["Dec 14, 2025","Paid",1],["Dec 14, 2025","app_push",2],["Dec 14, 2025","download_banner",1],["Dec 14, 2025","undefined",8],["Dec 15, 2025","Paid",1],["Dec 15, 2025","crm_email",2],["Dec 15, 2025","notification",2],["Dec 15, 2025","undefined",9],["Dec 16, 2025","GE_Meta",1],["Dec 16, 2025","trigger-banner",1],["Dec 16, 2025","undefined",10],["Dec 17, 2025","Self",1],["Dec 17, 2025","undefined",10],["Dec 18, 2025","crm_email",1],["Dec 18, 2025","download_banner",1],["Dec 18, 2025","undefined",7],["Dec 19, 2025","undefined",8],["Dec 20, 2025","undefined",2],["Dec 21, 2025","app_push",1],["Dec 21, 2025","trigger-banner",1],["Dec 21, 2025","undefined",4],["Dec 22, 2025","undefined",1],["Dec 23, 2025","GE_Meta",2],["Dec 23, 2025","Paid",1],["Dec 23, 2025","undefined",7],["Dec 24, 2025","crm_email",1],["Dec 24, 2025","ig",2],["Dec 24, 2025","notification",1],["Dec 24, 2025","undefined",4],["Dec 25, 2025","GE_Meta",1],["Dec 25, 2025","Paid",1],["Dec 25, 2025","Self",1],["Dec 25, 2025","undefined",4],["Dec 26, 2025","GE_Meta",1],["Dec 26, 2025","undefined",11],["Dec 27, 2025","GE_Meta",2],["Dec 27, 2025","crm_email",1],["Dec 27, 2025","undefined",11],["Dec 28, 2025","crm_email",1],["Dec 28, 2025","undefined",6],["Dec 29, 2025","GE_Meta",1],["Dec 29, 2025","Instagram",1],["Dec 29, 2025","undefined",13],["Dec 30, 2025","GE_Meta",1],["Dec 30, 2025","Paid",1],["Dec 30, 2025","undefined",6],["Dec 31, 2025","download_banner",1],["Dec 31, 2025","undefined",2],["Jan 1, 2026","GE_Meta",1],["Jan 1, 2026","undefined",4],["Jan 2, 2026","undefined",1],["Jan 3, 2026","undefined",5],["Jan 4, 2026","download_banner",1],["Jan 4, 2026","undefined",7],["Jan 5, 2026","Instagram",1],["Jan 5, 2026","crm_email",1],["Jan 5, 2026","notification",1],["Jan 5, 2026","undefined",9],["Jan 6, 2026","trigger-banner",3],["Jan 6, 2026","undefined",11],["Jan 7, 2026","GE_Meta",1],["Jan 7, 2026","WA_Channel",1],["Jan 7, 2026","download_banner",1],["Jan 7, 2026","instagram",1],["Jan 7, 2026","trigger-banner",1],["Jan 7, 2026","undefined",4],["Jan 8, 2026","undefined",11],["Jan 9, 2026","instagram",1],["Jan 9, 2026","notification",1],["Jan 9, 2026","undefined",12],["Jan 10, 2026","download_banner",1],["Jan 10, 2026","instagram",2],["Jan 10, 2026","notification",1],["Jan 10, 2026","undefined",7],["Jan 11, 2026","Instagram",1],["Jan 11, 2026","Paid",1],["Jan 11, 2026","notification",2],["Jan 11, 2026","undefined",11],["Jan 12, 2026","GE_Meta",1],["Jan 12, 2026","Paid",1],["Jan 12, 2026","google",1],["Jan 12, 2026","trigger-banner",1],["Jan 12, 2026","undefined",17],["Jan 12, 2026","website",1],["Jan 13, 2026","Paid",1],["Jan 13, 2026","undefined",8],["Jan 14, 2026","GE_Meta",1],["Jan 14, 2026","Self",1],["Jan 14, 2026","crm_email",2],["Jan 14, 2026","download_banner",2],["Jan 14, 2026","notification",1],["Jan 14, 2026","undefined",8],["Jan 15, 2026","download_banner",2],["Jan 15, 2026","trigger_banner",1],["Jan 15, 2026","undefined",19],["Jan 16, 2026","GE_Meta",2],["Jan 16, 2026","download_banner",3],["Jan 16, 2026","instagram",2],["Jan 16, 2026","trigger_banner",1],["Jan 16, 2026","undefined",14],["Jan 16, 2026","website",1],["Jan 17, 2026","GE_Meta",1],["Jan 17, 2026","crm_email",1],["Jan 17, 2026","download_banner",1],["Jan 17, 2026","notification",1],["Jan 17, 2026","undefined",22],["Jan 18, 2026","notification",2],["Jan 18, 2026","undefined",13],["Jan 18, 2026","website",1],["Jan 19, 2026","Instagram",1],["Jan 19, 2026","download_banner",1],["Jan 19, 2026","notification",1],["Jan 19, 2026","undefined",10],["Jan 20, 2026","Paid",1],["Jan 20, 2026","Pmax",1],["Jan 20, 2026","undefined",7],["Jan 21, 2026","Paid",1],["Jan 21, 2026","undefined",7],["Jan 22, 2026","GE_Meta",1],["Jan 22, 2026","Self",8],["Jan 22, 2026","undefined",6],["Jan 23, 2026","GE_Meta",2],["Jan 23, 2026","download_banner",1],["Jan 23, 2026","undefined",4],["Jan 24, 2026","app_push",1],["Jan 24, 2026","notification",1],["Jan 24, 2026","undefined",3],["Jan 25, 2026","Self",3],["Jan 25, 2026","undefined",13],["Jan 26, 2026","download_banner",1],["Jan 26, 2026","undefined",10],["Jan 27, 2026","download_banner",1],["Jan 27, 2026","undefined",12],["Jan 28, 2026","GE_Meta",2],["Jan 28, 2026","undefined",5],["Jan 29, 2026","GE_Meta",1],["Jan 29, 2026","instagram",1],["Jan 29, 2026","notification",2],["Jan 29, 2026","trigger_banner",1],["Jan 29, 2026","undefined",8],["Jan 30, 2026","WA",1],["Jan 30, 2026","download_banner",1],["Jan 30, 2026","notification",2],["Jan 30, 2026","undefined",4],["Jan 31, 2026","undefined",3],["Feb 1, 2026","GE_Meta",1],["Feb 1, 2026","google",1],["Feb 1, 2026","undefined",4],["Feb 2, 2026","instagram",2],["Feb 2, 2026","notification",1],["Feb 2, 2026","undefined",8],["Feb 3, 2026","undefined",5],["Feb 4, 2026","GE_Meta",1],["Feb 4, 2026","undefined",6],["Feb 5, 2026","GE_Meta",3],["Feb 5, 2026","undefined",3],["Feb 6, 2026","GE_Meta",1],["Feb 6, 2026","instagram",2],["Feb 6, 2026","undefined",7],["Feb 7, 2026","GE_Meta",1],["Feb 7, 2026","crm_email",1],["Feb 7, 2026","undefined",4],["Feb 8, 2026","undefined",6],["Feb 9, 2026","GE_Meta",1],["Feb 9, 2026","undefined",4],["Feb 10, 2026","GE_Meta",1],["Feb 10, 2026","app_push",1],["Feb 10, 2026","undefined",6],["Feb 11, 2026","crm_email",1],["Feb 11, 2026","undefined",11],["Feb 12, 2026","Self",1],["Feb 12, 2026","instagram",1],["Feb 12, 2026","undefined",9],["Feb 13, 2026","undefined",8],["Feb 14, 2026","WA_Channel",1],["Feb 14, 2026","undefined",5],["Feb 15, 2026","GE_Meta",1],["Feb 15, 2026","app_push",5],["Feb 15, 2026","notification",2],["Feb 15, 2026","trigger_banner",1],["Feb 15, 2026","undefined",15],["Feb 16, 2026","app_push",1],["Feb 16, 2026","undefined",4],["Feb 17, 2026","Paid",1],["Feb 17, 2026","app_push",2],["Feb 17, 2026","notification",1],["Feb 17, 2026","undefined",10],["Feb 18, 2026","crm_email",1],["Feb 18, 2026","notification",1],["Feb 18, 2026","undefined",5],["Feb 19, 2026","GE_Meta",1],["Feb 19, 2026","undefined",4],["Feb 20, 2026","app_push",1],["Feb 20, 2026","undefined",5],["Feb 21, 2026","instagram",1],["Feb 21, 2026","undefined",5],["Feb 22, 2026","undefined",5],["Feb 22, 2026","website",1],["Feb 23, 2026","CRM_WA",1],["Feb 23, 2026","notification",3],["Feb 23, 2026","undefined",9],["Feb 24, 2026","CRM_WA",1],["Feb 24, 2026","instagram",1],["Feb 24, 2026","undefined",9],["Feb 25, 2026","CRM_WA",1],["Feb 25, 2026","Paid",1],["Feb 25, 2026","WA_Channel",1],["Feb 25, 2026","undefined",11],["Feb 26, 2026","notification",1],["Feb 26, 2026","undefined",7],["Feb 27, 2026","Self",1],["Feb 27, 2026","ig",1],["Feb 27, 2026","undefined",12],["Feb 28, 2026","Paid",1],["Feb 28, 2026","Self",1],["Feb 28, 2026","app_push",3],["Feb 28, 2026","undefined",9],["Mar 1, 2026","GE_Meta",1],["Mar 1, 2026","notification",2],["Mar 1, 2026","undefined",4],["Mar 2, 2026","GE_Meta",1],["Mar 2, 2026","crm_email",1],["Mar 2, 2026","notification",1],["Mar 2, 2026","undefined",10],["Mar 3, 2026","ig",1],["Mar 3, 2026","instagram",1],["Mar 3, 2026","undefined",8],["Mar 4, 2026","GE_Meta",1],["Mar 4, 2026","undefined",4],["Mar 5, 2026","undefined",5],["Mar 6, 2026","Self",1],["Mar 6, 2026","undefined",6],["Mar 7, 2026","undefined",4],["Mar 8, 2026","GE_Meta",1],["Mar 8, 2026","undefined",7],["Mar 9, 2026","GE_Meta",1],["Mar 9, 2026","download_banner",1],["Mar 9, 2026","ig",1],["Mar 9, 2026","notification",1],["Mar 9, 2026","undefined",5],["Mar 10, 2026","undefined",8],["Mar 11, 2026","notification",2],["Mar 11, 2026","undefined",5],["Mar 12, 2026","fb",1],["Mar 12, 2026","undefined",7],["Mar 13, 2026","WATI_BOT",1],["Mar 13, 2026","notification",2],["Mar 13, 2026","undefined",10],["Mar 14, 2026","Paid",1],["Mar 14, 2026","crm_email",1],["Mar 14, 2026","undefined",5],["Mar 15, 2026","notification",1],["Mar 15, 2026","undefined",7],["Mar 16, 2026","undefined",9],["Mar 17, 2026","undefined",8],["Mar 18, 2026","GE_Meta",1],["Mar 18, 2026","undefined",8],["Mar 19, 2026","GE_Meta",3],["Mar 19, 2026","trigger_banner",1],["Mar 19, 2026","undefined",13],["Mar 20, 2026","WATI_BOT",6],["Mar 20, 2026","undefined",14],["Mar 21, 2026","fb",1],["Mar 21, 2026","instagram",1],["Mar 21, 2026","notification",1],["Mar 21, 2026","undefined",10],["Mar 22, 2026","app_push",1],["Mar 22, 2026","undefined",7],["Mar 23, 2026","undefined",1],["Mar 24, 2026","GE_Meta",1],["Mar 24, 2026","WATI_BOT",1],["Mar 24, 2026","notification",2],["Mar 24, 2026","trigger_banner",1],["Mar 24, 2026","undefined",4],["Mar 25, 2026","WATI_BOT",1],["Mar 25, 2026","undefined",12],["Mar 26, 2026","GE_Meta",1],["Mar 26, 2026","notification",1],["Mar 26, 2026","undefined",6],["Mar 27, 2026","Paid",1],["Mar 27, 2026","WA_Channel",1],["Mar 27, 2026","crm_email",3],["Mar 27, 2026","notification",1],["Mar 27, 2026","undefined",9],["Mar 28, 2026","undefined",9],["Mar 29, 2026","undefined",8],["Mar 30, 2026","undefined",12],["Mar 31, 2026","GE_Meta",1],["Mar 31, 2026","notification",4],["Mar 31, 2026","undefined",10],["Apr 1, 2026","GE_Meta",1],["Apr 1, 2026","notification",2],["Apr 1, 2026","undefined",14],["Apr 2, 2026","CRM_WA",1],["Apr 2, 2026","notification",1],["Apr 2, 2026","undefined",8],["Apr 3, 2026","notification",1],["Apr 3, 2026","undefined",20],["Apr 4, 2026","crm_email",1],["Apr 4, 2026","notification",2],["Apr 4, 2026","undefined",19],["Apr 5, 2026","crm_email",1],["Apr 5, 2026","notification",2],["Apr 5, 2026","undefined",11],["Apr 6, 2026","undefined",7],["Apr 7, 2026","GE_Meta",1],["Apr 7, 2026","notification",1],["Apr 7, 2026","undefined",6],["Apr 8, 2026","undefined",10],["Apr 9, 2026","undefined",17],["Apr 10, 2026","GE_Meta",1],["Apr 10, 2026","notification",2],["Apr 10, 2026","undefined",9],["Apr 11, 2026","GE_Meta",1],["Apr 11, 2026","notification",1],["Apr 11, 2026","undefined",7],["Apr 12, 2026","GE_Meta",2],["Apr 12, 2026","instagram",1],["Apr 12, 2026","undefined",10],["Apr 13, 2026","GE_Meta",1],["Apr 13, 2026","crm_email",1],["Apr 13, 2026","notification",1],["Apr 13, 2026","success_page",2],["Apr 13, 2026","trigger_banner",1],["Apr 13, 2026","undefined",12],["Apr 14, 2026","CRM_WA",1],["Apr 14, 2026","instagram",1],["Apr 14, 2026","notification",1],["Apr 14, 2026","undefined",10],["Apr 15, 2026","instagram",1],["Apr 15, 2026","undefined",21],["Apr 16, 2026","WA_Channel",1],["Apr 16, 2026","notification",1],["Apr 16, 2026","undefined",16],["Apr 17, 2026","Self",1],["Apr 17, 2026","undefined",7],["Apr 18, 2026","undefined",4],["Apr 19, 2026","GE_Meta",1],["Apr 19, 2026","Paid",1],["Apr 19, 2026","fb",1],["Apr 19, 2026","notification",1],["Apr 19, 2026","undefined",9],["Apr 20, 2026","Self",1],["Apr 20, 2026","notification",1],["Apr 20, 2026","undefined",9],["Apr 21, 2026","undefined",9],["Apr 22, 2026","GE_Meta",1],["Apr 22, 2026","notification",1],["Apr 22, 2026","undefined",5],["Apr 23, 2026","notification",2],["Apr 23, 2026","push_notification",1],["Apr 23, 2026","success_page",1],["Apr 23, 2026","undefined",17],["Apr 24, 2026","undefined",10],["Apr 25, 2026","Self",1],["Apr 25, 2026","notification",3],["Apr 25, 2026","undefined",6],["Apr 26, 2026","GE_Meta",2],["Apr 26, 2026","crm_email",1],["Apr 26, 2026","instagram",1],["Apr 26, 2026","notification",2],["Apr 26, 2026","success_page",1],["Apr 26, 2026","undefined",11],["Apr 27, 2026","GE_Meta",2],["Apr 27, 2026","WATI_BOT",1],["Apr 27, 2026","download_banner",1],["Apr 27, 2026","notification",1],["Apr 27, 2026","trigger_banner",2],["Apr 27, 2026","undefined",11],["Apr 28, 2026","fb",1],["Apr 28, 2026","notification",2],["Apr 28, 2026","success_page",1],["Apr 28, 2026","undefined",13],["Apr 29, 2026","GE_Meta",2],["Apr 29, 2026","push_notification",1],["Apr 29, 2026","undefined",6],["Apr 30, 2026","WA_Channel",2],["Apr 30, 2026","fb",1],["Apr 30, 2026","notification",1],["Apr 30, 2026","undefined",5],["May 1, 2026","Paid",1],["May 1, 2026","push_notification",2],["May 1, 2026","undefined",15],["May 2, 2026","push_notification",1],["May 2, 2026","undefined",7],["May 3, 2026","undefined",9],["May 4, 2026","GE_Meta",1],["May 4, 2026","WATI_BOT",2],["May 4, 2026","crm_email",1],["May 4, 2026","notification",2],["May 4, 2026","push_notification",4],["May 4, 2026","undefined",17],["May 5, 2026","WATI_BOT",1],["May 5, 2026","push_notification",4],["May 5, 2026","success_page",1],["May 5, 2026","undefined",24],["May 6, 2026","GE_Meta",1],["May 6, 2026","undefined",9],["May 7, 2026","GE_Meta",2],["May 7, 2026","WATI_BOT",1],["May 7, 2026","notification",1],["May 7, 2026","undefined",9],["May 8, 2026","GE_Meta",1],["May 8, 2026","crm_email",2],["May 8, 2026","push_notification",1],["May 8, 2026","undefined",15],["May 9, 2026","undefined",7],["May 10, 2026","Self",1],["May 10, 2026","crm_email",1],["May 10, 2026","instagram",1],["May 10, 2026","undefined",11],["May 11, 2026","GE_Meta",1],["May 11, 2026","notification",1],["May 11, 2026","undefined",7],["May 12, 2026","notification",2],["May 12, 2026","push_notification",1],["May 12, 2026","success_page",1],["May 12, 2026","undefined",15],["May 13, 2026","GE_Meta",1],["May 13, 2026","undefined",7],["May 14, 2026","GE_Meta",1],["May 14, 2026","instagram",1],["May 14, 2026","notification",1],["May 14, 2026","push_notification",1],["May 14, 2026","undefined",14],["May 15, 2026","notification",1],["May 15, 2026","undefined",18],["May 16, 2026","GE_Meta",2],["May 16, 2026","download_banner",1],["May 16, 2026","notification",1],["May 16, 2026","undefined",8],["May 17, 2026","WATI_BOT",1],["May 17, 2026","undefined",3],["May 18, 2026","notification",2],["May 18, 2026","undefined",19],["May 19, 2026","notification",2],["May 19, 2026","success_page",1],["May 19, 2026","undefined",16],["May 20, 2026","WATI_BOT",1],["May 20, 2026","notification",1],["May 20, 2026","undefined",11],["May 21, 2026","push_notification",1],["May 21, 2026","undefined",7]];
 
-/* Paid Course PDP → Purchase funnel (logged-out users, iOS)
+/* Paid Course PDP → Purchase funnel (logged-out users, iOS) — 6 steps
    [month, paid_pdp_views, pv_to_rc, rc_to_cart, cart_to_otp, otp_to_login, login_to_purchase, overall_cr] */
 const PAID_FUNNEL_RAW=[
   ["Apr 2025",95,0.277778,1.0,0.45,1.0,0.222222,0.027778],
@@ -989,6 +993,24 @@ const PAID_FUNNEL_RAW=[
   ["Apr 2026",1400,0.155211,0.785714,0.406061,0.850746,0.736842,0.031042],
   ["May 2026",951,0.161957,0.825503,0.333333,0.926829,0.710526,0.029348]
 ];
+
+/* Paid Course PDP → Purchase funnel (logged-in users, iOS) — 5 steps (no OTP/Login)
+   [month, paid_pdp_views, pv_to_rc, rc_to_cart, cart_to_proceed, proceed_to_purchase, overall_cr] */
+const PAID_FUNNEL_LI_RAW=[
+  ["Apr 2025",61,0.132075,0.857143,0.5,1.0,0.056604],
+  ["May 2025",107,0.194444,1.0,0.785714,0.909091,0.138889],
+  ["Jun 2025",153,0.202899,1.0,0.821429,0.695652,0.115942],
+  ["Jul 2025",180,0.258278,0.974359,0.631579,0.625,0.099338],
+  ["Nov 2025",569,0.108108,1.0,0.666667,0.65,0.046847],
+  ["Dec 2025",1003,0.15249,0.972789,0.692308,0.525253,0.053942],
+  ["Jan 2026",1254,0.149626,0.938889,0.698225,0.5,0.049044],
+  ["Feb 2026",1390,0.1686,0.655963,0.475524,0.720588,0.037896],
+  ["Mar 2026",1380,0.199379,0.680934,0.457143,0.7625,0.047324],
+  ["Apr 2026",1651,0.197266,0.69637,0.535545,0.823009,0.060547],
+  ["May 2026",1170,0.189781,0.769231,0.5375,0.825581,0.064781]
+];
+
+let paidFunnelMode='loggedout';
 
 /* Funnel data: [month, unique_visitors, course_pct, paid_course_pct, one_on_one_pct, combined_pct] */
 const FUNNEL_RAW=[
@@ -1444,36 +1466,63 @@ function renderFunnels(){
   }).join('');
 }
 
+function setPaidFunnelMode(mode){
+  paidFunnelMode=mode;
+  document.getElementById('pf-mode-loggedout').style.background=mode==='loggedout'?'var(--bg-secondary)':'var(--bg)';
+  document.getElementById('pf-mode-loggedout').style.color=mode==='loggedout'?'var(--text)':'var(--text-secondary)';
+  document.getElementById('pf-mode-loggedin').style.background=mode==='loggedin'?'var(--bg-secondary)':'var(--bg)';
+  document.getElementById('pf-mode-loggedin').style.color=mode==='loggedin'?'var(--text)':'var(--text-secondary)';
+  const sel=document.getElementById('paid-funnel-month');
+  sel.innerHTML='';sel.dataset.populated='';
+  renderPaidFunnel();
+}
+
+function getPaidFunnelData(){
+  if(paidFunnelMode==='loggedin'){
+    return {
+      raw:PAID_FUNNEL_LI_RAW,
+      stepLabels:['Paid PDP views','→ Register click','→ Cart','→ Proceed Payment','→ Purchase'],
+      tableHeaders:['Paid PDP views','→ Register click','→ Cart','→ Proceed Payment','→ Purchase'],
+      crIdx:6
+    };
+  }
+  return {
+    raw:PAID_FUNNEL_RAW,
+    stepLabels:['Paid PDP views','→ Register click','→ Cart','→ Send OTP','→ Login','→ Purchase'],
+    tableHeaders:['Paid PDP views','→ Register click','→ Cart','→ Send OTP','→ Login','→ Purchase'],
+    crIdx:7
+  };
+}
+
 function initPaidFunnelSelect(){
   const sel=document.getElementById('paid-funnel-month');
-  if(!sel||sel.options.length)return;
-  PAID_FUNNEL_RAW.forEach((r,i)=>{
+  if(!sel||sel.dataset.populated)return;
+  const {raw}=getPaidFunnelData();
+  raw.forEach((r,i)=>{
     const o=document.createElement('option');
     o.value=i;o.textContent=r[0];
     sel.appendChild(o);
   });
-  sel.value=PAID_FUNNEL_RAW.length-1;
+  sel.value=raw.length-1;
+  sel.dataset.populated='1';
 }
 
 function renderPaidFunnel(){
   initPaidFunnelSelect();
+  const {raw,stepLabels,tableHeaders,crIdx}=getPaidFunnelData();
   const idx=+document.getElementById('paid-funnel-month').value;
-  const row=PAID_FUNNEL_RAW[idx];
-  const [m,pv,r1,r2,r3,r4,r5,cr]=row;
-  const s1=pv;
-  const s2=Math.round(s1*r1);
-  const s3=Math.round(s2*r2);
-  const s4=Math.round(s3*r3);
-  const s5=Math.round(s4*r4);
-  const s6=Math.round(s5*r5);
+  const row=raw[idx];
+  const m=row[0],pv=row[1],cr=row[crIdx];
+  const rates=row.slice(2,crIdx); // step rates
+
+  // cumulative counts
+  const stepVals=[pv];
+  for(let i=0;i<rates.length;i++) stepVals.push(Math.round(stepVals[i]*rates[i]));
+  const stepRates=[100,...rates.map(x=>x*100)];
+  const cumPct=stepVals.map(v=>v/pv*100);
+  const stepColors=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#0F6E56'].slice(0,stepVals.length);
 
   document.getElementById('paid-funnel-meta').textContent=`${m}: ${pv.toLocaleString()} paid PDP views · overall CR ${(cr*100).toFixed(2)}%`;
-
-  const stepLabels=['Paid PDP views','→ Register click','→ Cart','→ Send OTP','→ Login','→ Purchase'];
-  const stepVals=[s1,s2,s3,s4,s5,s6];
-  const stepRates=[100,r1*100,r2*100,r3*100,r4*100,r5*100];
-  const cumPct=[100,(s2/s1*100),(s3/s1*100),(s4/s1*100),(s5/s1*100),(s6/s1*100)];
-  const stepColors=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#0F6E56'];
 
   if(charts['c-paid-funnel'])charts['c-paid-funnel'].destroy();
   charts['c-paid-funnel']=new Chart(document.getElementById('c-paid-funnel'),{
@@ -1497,8 +1546,8 @@ function renderPaidFunnel(){
   });
 
   // overall CR trend
-  const months=PAID_FUNNEL_RAW.map(r=>r[0]);
-  const crData=PAID_FUNNEL_RAW.map(r=>+(r[7]*100).toFixed(3));
+  const months=raw.map(r=>r[0]);
+  const crData=raw.map(r=>+(r[crIdx]*100).toFixed(3));
   if(charts['c-paid-funnel-trend'])charts['c-paid-funnel-trend'].destroy();
   charts['c-paid-funnel-trend']=new Chart(document.getElementById('c-paid-funnel-trend'),{
     type:'line',
@@ -1516,22 +1565,21 @@ function renderPaidFunnel(){
     }
   });
 
+  // rebuild table head + body to match step count
+  const thead=document.querySelector('#paid-funnel-table thead');
+  thead.innerHTML=`<tr><th>Month</th>${tableHeaders.map((h,i)=>`<th style="text-align:right">${i===0?h:h}</th>`).join('')}<th style="text-align:right">Overall CR</th></tr>`;
+
   const tb=document.getElementById('paid-funnel-tbody');
-  tb.innerHTML=PAID_FUNNEL_RAW.map((r,i)=>{
-    const [mm,pv0,a,b,c,d,e,cr0]=r;
-    const sel=i===idx?'background:var(--bg-secondary);font-weight:500;':'';
+  tb.innerHTML=raw.map((r,i)=>{
+    const mm=r[0],pv0=r[1],cr0=r[crIdx];
+    const rs=r.slice(2,crIdx);
+    const counts=[pv0];
+    for(let j=0;j<rs.length;j++) counts.push(Math.round(counts[j]*rs[j]));
+    const selStyle=i===idx?'background:var(--bg-secondary);font-weight:500;':'';
     const step=(num,rate)=>`${num.toLocaleString()} <span style="color:var(--text-tertiary);font-size:11px">(${(rate*100).toFixed(1)}%)</span>`;
-    const n2=Math.round(pv0*a),n3=Math.round(n2*b),n4=Math.round(n3*c),n5=Math.round(n4*d),n6=Math.round(n5*e);
-    return `<tr style="${sel}">
-      <td>${mm}</td>
-      <td style="text-align:right">${pv0.toLocaleString()}</td>
-      <td style="text-align:right">${step(n2,a)}</td>
-      <td style="text-align:right">${step(n3,b)}</td>
-      <td style="text-align:right">${step(n4,c)}</td>
-      <td style="text-align:right">${step(n5,d)}</td>
-      <td style="text-align:right">${step(n6,e)}</td>
-      <td style="text-align:right">${(cr0*100).toFixed(2)}%</td>
-    </tr>`;
+    const cells=[`<td style="text-align:right">${pv0.toLocaleString()}</td>`];
+    for(let j=0;j<rs.length;j++) cells.push(`<td style="text-align:right">${step(counts[j+1],rs[j])}</td>`);
+    return `<tr style="${selStyle}"><td>${mm}</td>${cells.join('')}<td style="text-align:right">${(cr0*100).toFixed(2)}%</td></tr>`;
   }).join('');
 }
 
