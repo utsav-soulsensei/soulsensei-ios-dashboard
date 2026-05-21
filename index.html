@@ -1138,9 +1138,14 @@
   </div><!-- /tab-releases -->
 
   <div id="tab-retention" style="display:none">
-    <p class="compare-note">Cohort revenue repeat rate (iOS). Each row is a first-order (FO) month; columns M0 → M13+ show repeat revenue as % of cohort's first-order revenue at that month-since. Empty cells mean the cohort hasn't reached that month yet (or no data). Greener = higher retention; purple-tinted = >100% (repeat exceeded original).</p>
+    <p class="compare-note">Cohort repeat rate (iOS). Each row is a first-order (FO) month; columns M0 → M13+ show repeat as % of cohort's first-order baseline at that month-since. Empty cells = cohort hasn't reached that month yet. Toggle between revenue repeat (₹) and users repeat (unique buyers). Greener = higher retention; purple-tinted = >100% (repeat exceeded original).</p>
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-      <label style="font-size:12px;color:var(--text-secondary);">View:</label>
+      <label style="font-size:12px;color:var(--text-secondary);">Metric:</label>
+      <div style="display:inline-flex;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;">
+        <button id="ret-metric-revenue" onclick="setRetentionMetric('revenue')" style="padding:6px 12px;border:0;background:var(--bg-secondary);color:var(--text);font-size:12px;cursor:pointer;">Revenue</button>
+        <button id="ret-metric-users" onclick="setRetentionMetric('users')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">Users</button>
+      </div>
+      <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">View:</label>
       <div style="display:inline-flex;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;">
         <button id="ret-view-heatmap" onclick="setRetentionView('heatmap')" style="padding:6px 12px;border:0;background:var(--bg-secondary);color:var(--text);font-size:12px;cursor:pointer;">Heatmap</button>
         <button id="ret-view-curves" onclick="setRetentionView('curves')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">Curves</button>
@@ -2543,6 +2548,25 @@ function formatLabelDate(iso){
 /* ── retention tab (iOS cohorts) ──────────────────────────── */
 const RETENTION_COLS=['M0','M01','M02','M03','M04','M05','M06','M07','M08','M09','M10','M11','M12','M13+'];
 
+/* Each row: [cohort, FO_users, ...rates] — null where cohort hasn't reached that month */
+const USERS_RETENTION_RAW=[
+  ['Apr 2025',10,20.0,20.0,0.0,0.0,10.0,20.0,0.0,10.0,0.0,0.0,0.0,10.0,10.0,0.0],
+  ['May 2025',15,13.3,26.7,26.7,20.0,20.0,6.7,33.3,20.0,6.7,26.7,6.7,13.3,0.0,0.0],
+  ['Jun 2025',21,14.3,4.8,19.0,14.3,14.3,9.5,4.8,4.8,0.0,0.0,4.8,0.0,0.0,0.0],
+  ['Jul 2025',14,null,21.4,14.3,14.3,21.4,14.3,7.1,7.1,null,null,null,null,null,null],
+  ['Aug 2025',27,22.2,40.7,14.8,25.9,18.5,18.5,3.7,14.8,7.4,null,null,null,null,null],
+  ['Sep 2025',44,22.7,13.6,15.9,13.6,13.6,4.5,2.3,4.5,null,null,null,null,null,null],
+  ['Oct 2025',37,24.3,21.6,8.1,8.1,8.1,8.1,13.5,null,null,null,null,null,null,null],
+  ['Nov 2025',72,15.3,13.9,11.1,4.2,5.6,5.6,null,null,null,null,null,null,null,null],
+  ['Dec 2025',63,12.7,15.9,6.3,7.9,7.9,null,null,null,null,null,null,null,null,null],
+  ['Jan 2026',69,15.9,5.8,11.6,8.7,null,null,null,null,null,null,null,null,null,null],
+  ['Feb 2026',57,19.3,10.5,5.3,null,null,null,null,null,null,null,null,null,null,null],
+  ['Mar 2026',66,18.2,18.2,null,null,null,null,null,null,null,null,null,null,null,null],
+  ['Apr 2026',66,18.2,null,null,null,null,null,null,null,null,null,null,null,null,null]
+];
+
+let retentionMetric='revenue';
+
 /* Each row: [cohort, FO_revenue, ...rates from M0 to M13+ — null where empty] */
 const RETENTION_RAW=[
   ['Apr 2025',11557,21.6,17.3,0.0,0.0,19.0,32.0,0.0,10.4,0.0,0.0,0.0,8.8,10.5,0.0],
@@ -2576,6 +2600,26 @@ function setRetentionView(v){
   renderRetention();
 }
 
+function setRetentionMetric(m){
+  retentionMetric=m;
+  ['revenue','users'].forEach(x=>{
+    const b=document.getElementById('ret-metric-'+x);
+    b.style.background=m===x?'var(--bg-secondary)':'var(--bg)';
+    b.style.color=m===x?'var(--text)':'var(--text-secondary)';
+  });
+  renderRetention();
+}
+
+function getRetentionData(){
+  return retentionMetric==='users'?USERS_RETENTION_RAW:RETENTION_RAW;
+}
+function formatFO(v){
+  return retentionMetric==='users'?v.toLocaleString()+' users':'₹'+(v/1000).toFixed(1)+'k';
+}
+function foColLabel(){
+  return retentionMetric==='users'?'First-Order Users':'First-Order Rev';
+}
+
 function retentionColor(v){
   if(v==null) return 'transparent';
   if(v<=0) return 'rgba(136,135,128,0.06)';
@@ -2596,19 +2640,20 @@ function retentionTextColor(v){
 }
 
 function renderRetentionHeatmap(){
+  const data=getRetentionData();
   const t=document.getElementById('ret-table');
   let html='<thead><tr>';
   html+='<th style="position:sticky;left:0;background:var(--bg-secondary);padding:8px 10px;text-align:left;border-bottom:0.5px solid var(--border);font-weight:500;color:var(--text-tertiary);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap;">Cohort</th>';
-  html+='<th style="padding:8px 10px;text-align:right;border-bottom:0.5px solid var(--border);font-weight:500;color:var(--text-tertiary);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap;">First-Order Rev</th>';
+  html+=`<th style="padding:8px 10px;text-align:right;border-bottom:0.5px solid var(--border);font-weight:500;color:var(--text-tertiary);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap;">${foColLabel()}</th>`;
   RETENTION_COLS.forEach(c=>{
     html+=`<th style="padding:8px 6px;text-align:center;border-bottom:0.5px solid var(--border);font-weight:500;color:var(--text-tertiary);font-size:10px;letter-spacing:0.04em;min-width:48px;">${c}</th>`;
   });
   html+='</tr></thead><tbody>';
-  RETENTION_RAW.forEach(r=>{
+  data.forEach(r=>{
     const cohort=r[0],fo=r[1],rates=r.slice(2);
     html+=`<tr>
       <td style="position:sticky;left:0;background:var(--bg);padding:6px 10px;border-bottom:0.5px solid var(--border);font-weight:500;color:var(--text);white-space:nowrap;">${cohort}</td>
-      <td style="padding:6px 10px;text-align:right;border-bottom:0.5px solid var(--border);color:var(--text-secondary);">₹${(fo/1000).toFixed(1)}k</td>`;
+      <td style="padding:6px 10px;text-align:right;border-bottom:0.5px solid var(--border);color:var(--text-secondary);">${formatFO(fo)}</td>`;
     rates.forEach(v=>{
       const bg=retentionColor(v);
       const col=retentionTextColor(v);
@@ -2622,10 +2667,10 @@ function renderRetentionHeatmap(){
 }
 
 function getRetentionAvgs(){
-  // average % at each M-since, ignoring null and zeros? — include zeros, exclude nulls
+  const data=getRetentionData();
   const sums=Array(RETENTION_COLS.length).fill(0);
   const counts=Array(RETENTION_COLS.length).fill(0);
-  RETENTION_RAW.forEach(r=>{
+  data.forEach(r=>{
     const rates=r.slice(2);
     rates.forEach((v,i)=>{
       if(v!=null){sums[i]+=v;counts[i]++;}
@@ -2635,8 +2680,9 @@ function getRetentionAvgs(){
 }
 
 function drawRetentionCurves(){
+  const data=getRetentionData();
   const palette=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#BA7517','#0F6E56','#D4537E','#444444','#9FE1CB','#F2B441','#7E57C2','#26A69A'];
-  const datasets=RETENTION_RAW.map((r,i)=>{
+  const datasets=data.map((r,i)=>{
     const cohort=r[0];
     const rates=r.slice(2);
     const visible=retentionVisibleCohorts[cohort]!==false;
@@ -2675,7 +2721,7 @@ function drawRetentionCurves(){
   // cohort toggles
   const wrap=document.getElementById('ret-cohort-toggles');
   wrap.innerHTML='';
-  RETENTION_RAW.forEach((r,i)=>{
+  data.forEach((r,i)=>{
     const cohort=r[0];
     if(!(cohort in retentionVisibleCohorts)) retentionVisibleCohorts[cohort]=true;
     const on=retentionVisibleCohorts[cohort];
@@ -2689,6 +2735,7 @@ function drawRetentionCurves(){
 }
 
 function drawRetentionAvg(){
+  const data=getRetentionData();
   const avgs=getRetentionAvgs();
   if(charts['c-retention-avg'])charts['c-retention-avg'].destroy();
   charts['c-retention-avg']=new Chart(document.getElementById('c-retention-avg'),{
@@ -2704,7 +2751,7 @@ function drawRetentionAvg(){
       responsive:true,maintainAspectRatio:false,
       plugins:{
         legend:{display:false},
-        tooltip:{callbacks:{label:c=>c.raw==null?null:`Avg: ${c.raw.toFixed(1)}% across ${RETENTION_RAW.filter(r=>r[2+c.dataIndex]!=null).length} cohorts`}}
+        tooltip:{callbacks:{label:c=>c.raw==null?null:`Avg: ${c.raw.toFixed(1)}% across ${data.filter(r=>r[2+c.dataIndex]!=null).length} cohorts`}}
       },
       scales:{
         x:{ticks:{font:{size:11},color:'#888780'},grid:{display:false}},
@@ -2715,22 +2762,24 @@ function drawRetentionAvg(){
 }
 
 function renderRetentionSummary(){
-  // Summary stats
-  const m0Vals=RETENTION_RAW.map(r=>r[2]).filter(v=>v!=null);
-  const m1Vals=RETENTION_RAW.map(r=>r[3]).filter(v=>v!=null);
-  const m3Vals=RETENTION_RAW.map(r=>r[5]).filter(v=>v!=null);
+  const data=getRetentionData();
+  const m0Vals=data.map(r=>r[2]).filter(v=>v!=null);
+  const m1Vals=data.map(r=>r[3]).filter(v=>v!=null);
 
   const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
-  // best/worst M01 cohort
   let bestM1={cohort:'—',val:-1},worstM1={cohort:'—',val:Infinity};
-  RETENTION_RAW.forEach(r=>{
+  data.forEach(r=>{
     if(r[3]!=null){
       if(r[3]>bestM1.val) bestM1={cohort:r[0],val:r[3]};
       if(r[3]<worstM1.val) worstM1={cohort:r[0],val:r[3]};
     }
   });
 
-  const totalFO=RETENTION_RAW.reduce((s,r)=>s+r[1],0);
+  const totalFO=data.reduce((s,r)=>s+r[1],0);
+  const totalFOLabel=retentionMetric==='users'
+    ? totalFO.toLocaleString()+' users'
+    : '₹'+(totalFO/100000).toFixed(1)+'L';
+  const totalFOTitle=retentionMetric==='users'?'Cumulative FO users':'Cumulative FO revenue';
 
   const card=(title,big,sub)=>`<div style="background:var(--bg-secondary);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;">
     <div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">${title}</div>
@@ -2738,8 +2787,8 @@ function renderRetentionSummary(){
     <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${sub}</div>
   </div>`;
   document.getElementById('ret-summary').innerHTML=
-    card('Cohorts tracked',RETENTION_RAW.length,`Apr 2025 – ${RETENTION_RAW[RETENTION_RAW.length-1][0]}`)
-    +card('Cumulative FO revenue','₹'+(totalFO/100000).toFixed(1)+'L',`across ${RETENTION_RAW.length} cohorts`)
+    card('Cohorts tracked',data.length,`Apr 2025 – ${data[data.length-1][0]}`)
+    +card(totalFOTitle,totalFOLabel,`across ${data.length} cohorts`)
     +card('Avg M0 repeat',avg(m0Vals).toFixed(1)+'%',`${m0Vals.length} cohorts with data`)
     +card('Avg M01 repeat',avg(m1Vals).toFixed(1)+'%',`${m1Vals.length} cohorts with data`)
     +card('Best M01 cohort',bestM1.val.toFixed(1)+'%',bestM1.cohort)
