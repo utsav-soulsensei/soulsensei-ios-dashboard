@@ -955,11 +955,14 @@
       <div class="charts-grid-2" style="margin-bottom:16px;">
         <div class="chart-card">
           <div class="card-title">paid PDP funnel — selected month</div>
-          <div id="paid-funnel-viz" style="padding:14px 12px 6px;"></div>
+          <div class="chart-wrap" style="height:360px"><canvas id="c-paid-funnel" role="img" aria-label="Paid PDP funnel">Paid funnel chart</canvas></div>
         </div>
         <div class="chart-card">
-          <div class="card-title">overall PDP → purchase CR by month</div>
-          <div class="chart-wrap" style="height:360px"><canvas id="c-paid-funnel-trend" role="img" aria-label="Paid PDP overall CR trend">Paid funnel CR trend</canvas></div>
+          <div class="card-title">step-rate trends — select metrics</div>
+          <div id="paid-trend-toggles" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px;"></div>
+          <div class="chart-wrap" style="height:200px"><canvas id="c-paid-funnel-trend" role="img" aria-label="Paid PDP step-rate trends">Step rate trend</canvas></div>
+          <div style="font-size:10px;color:var(--text-tertiary);margin:10px 0 4px;">Paid PDP views (absolute)</div>
+          <div class="chart-wrap" style="height:120px"><canvas id="c-paid-funnel-pv" role="img" aria-label="Paid PDP views trend">PDP views trend</canvas></div>
         </div>
       </div>
 
@@ -1495,6 +1498,7 @@ function setPaidFunnelMode(mode){
   document.getElementById('pf-mode-loggedin').style.color=mode==='loggedin'?'var(--text)':'var(--text-secondary)';
   const sel=document.getElementById('paid-funnel-month');
   sel.innerHTML='';sel.dataset.populated='';
+  paidTrendVisible={};
   renderPaidFunnel();
 }
 
@@ -1528,80 +1532,64 @@ function initPaidFunnelSelect(){
   sel.dataset.populated='1';
 }
 
-function renderPaidFunnel(){
-  initPaidFunnelSelect();
-  const {raw,stepLabels,tableHeaders,crIdx}=getPaidFunnelData();
-  const idx=+document.getElementById('paid-funnel-month').value;
-  const row=raw[idx];
-  const m=row[0],pv=row[1],cr=row[crIdx];
-  const rates=row.slice(2,crIdx); // step rates
+let paidTrendVisible={};
 
-  // cumulative counts
-  const counts=[pv];
-  for(let i=0;i<rates.length;i++) counts.push(Math.round(counts[i]*rates[i]));
-  const cumPct=counts.map(v=>v/pv);
-  const stepColors=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#0F6E56'].slice(0,counts.length);
-
-  // all-month averages per step (exclude zeros = no-data months)
-  const avgRates=rates.map((_,si)=>{
-    const vals=raw.map(r=>r[2+si]).filter(v=>v>0);
-    return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+function getPaidStepSeries(){
+  const {raw,stepLabels,crIdx}=getPaidFunnelData();
+  // step rate series labels (transitions): stepLabels has N labels for N stops; rates = N-1
+  const colors=['#378ADD','#1D9E75','#534AB7','#D85A30','#0F6E56','#BA7517'];
+  const series=[];
+  for(let i=0;i<stepLabels.length-1;i++){
+    const from=stepLabels[i].replace('→ ','').trim();
+    const to=stepLabels[i+1].replace('→ ','').trim();
+    series.push({
+      key:`step${i}`,
+      label:`${from} → ${to}`,
+      color:colors[i%colors.length],
+      data:raw.map(r=>+(r[2+i]*100).toFixed(2))
+    });
+  }
+  series.push({
+    key:'overall',
+    label:'Overall CR',
+    color:'#000',
+    data:raw.map(r=>+(r[crIdx]*100).toFixed(3))
   });
+  return series;
+}
 
-  // biggest drop step (largest absolute loss in cumulative %)
-  let biggestIdx=0,biggestLoss=0;
-  for(let i=0;i<rates.length;i++){
-    const loss=cumPct[i]-cumPct[i+1];
-    if(loss>biggestLoss){biggestLoss=loss;biggestIdx=i;}
-  }
+function renderPaidTrendToggles(){
+  const wrap=document.getElementById('paid-trend-toggles');
+  const series=getPaidStepSeries();
+  // default: show overall CR + biggest-drop step (first time per mode)
+  series.forEach(s=>{ if(!(s.key in paidTrendVisible)) paidTrendVisible[s.key]=(s.key==='overall'); });
+  wrap.innerHTML='';
+  series.forEach(s=>{
+    const btn=document.createElement('button');
+    const on=paidTrendVisible[s.key];
+    btn.style.cssText=`padding:4px 10px;font-size:11px;border:0.5px solid ${on?s.color:'var(--border)'};background:${on?s.color:'var(--bg)'};color:${on?'#fff':'var(--text-secondary)'};border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;`;
+    btn.innerHTML=`<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${on?'#fff':s.color}"></span>${s.label}`;
+    btn.onclick=()=>{paidTrendVisible[s.key]=!paidTrendVisible[s.key];renderPaidTrendToggles();drawPaidTrendChart();};
+    wrap.appendChild(btn);
+  });
+}
 
-  document.getElementById('paid-funnel-meta').textContent=`${m}: ${pv.toLocaleString()} paid PDP views · overall CR ${(cr*100).toFixed(2)}%`;
-
-  // build custom HTML funnel viz
-  const clean=s=>s.replace('→ ','').trim();
-  let html=`<div class="funnel-summary">
-    <div class="funnel-summary-title">${m} · overview</div>
-    <div class="funnel-summary-main">${pv.toLocaleString()} paid PDP views → ${counts[counts.length-1].toLocaleString()} purchases · CR <b>${(cr*100).toFixed(2)}%</b></div>
-    <div class="funnel-summary-leak">Biggest leak: ${clean(stepLabels[biggestIdx])} → ${clean(stepLabels[biggestIdx+1])} · ${counts[biggestIdx].toLocaleString()} → ${counts[biggestIdx+1].toLocaleString()} (kept ${(rates[biggestIdx]*100).toFixed(1)}%, lost ${((1-rates[biggestIdx])*100).toFixed(1)}%)</div>
-  </div>
-  <div class="funnel-viz">`;
-  for(let i=0;i<stepLabels.length;i++){
-    const w=Math.max(cumPct[i]*100,0.6);
-    html+=`<div class="funnel-step">
-      <div class="funnel-step-label">${clean(stepLabels[i])}</div>
-      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${w}%;background:${stepColors[i]}"></div></div>
-      <div class="funnel-count">${counts[i].toLocaleString()}</div>
-      <div class="funnel-cumul">${(cumPct[i]*100).toFixed(1)}%</div>
-    </div>`;
-    if(i<rates.length){
-      const r=rates[i],a=avgRates[i];
-      const deltaPp=(r-a)*100;
-      const cls=Math.abs(deltaPp)<1.5?'':deltaPp>0?'funnel-vs-up':'funnel-vs-dn';
-      const arr=Math.abs(deltaPp)<1.5?'·':deltaPp>0?'↑':'↓';
-      const sign=deltaPp>=0?'+':'';
-      const isBig=i===biggestIdx;
-      html+=`<div class="funnel-rate${isBig?' biggest':''}">
-        <span class="funnel-arrow">↓</span>
-        <span><b>${(r*100).toFixed(1)}%</b> kept</span>
-        <span class="funnel-vs-avg ${cls}">vs avg ${(a*100).toFixed(0)}% ${arr} ${Math.abs(deltaPp)>=1?sign+deltaPp.toFixed(0)+'pp':''}</span>
-      </div>`;
-    }
-  }
-  html+='</div>';
-  document.getElementById('paid-funnel-viz').innerHTML=html;
-
-  // overall CR trend
+function drawPaidTrendChart(){
+  const {raw}=getPaidFunnelData();
   const months=raw.map(r=>r[0]);
-  const crData=raw.map(r=>+(r[crIdx]*100).toFixed(3));
+  const series=getPaidStepSeries().filter(s=>paidTrendVisible[s.key]);
   if(charts['c-paid-funnel-trend'])charts['c-paid-funnel-trend'].destroy();
   charts['c-paid-funnel-trend']=new Chart(document.getElementById('c-paid-funnel-trend'),{
     type:'line',
-    data:{labels:months,datasets:[{label:'Overall CR',data:crData,borderColor:'#534AB7',backgroundColor:'rgba(83,74,183,0.12)',borderWidth:1.5,pointRadius:3,tension:0.3,fill:true}]},
+    data:{labels:months,datasets:series.map(s=>({
+      label:s.label,data:s.data,borderColor:s.color,backgroundColor:s.color,
+      borderWidth:1.5,pointRadius:2,tension:0.3,fill:false
+    }))},
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
         legend:{display:false},
-        tooltip:{callbacks:{label:c=>`Overall CR: ${c.raw}%`}}
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}}
       },
       scales:{
         x:{ticks:{font:{size:10},color:'#888780',maxRotation:0},grid:{display:false}},
@@ -1609,10 +1597,71 @@ function renderPaidFunnel(){
       }
     }
   });
+}
 
-  // rebuild table head + body to match step count
+function drawPaidPvChart(){
+  const {raw}=getPaidFunnelData();
+  const months=raw.map(r=>r[0]);
+  const pvData=raw.map(r=>r[1]);
+  if(charts['c-paid-funnel-pv'])charts['c-paid-funnel-pv'].destroy();
+  charts['c-paid-funnel-pv']=new Chart(document.getElementById('c-paid-funnel-pv'),{
+    type:'bar',
+    data:{labels:months,datasets:[{label:'PDP views',data:pvData,backgroundColor:'rgba(55,138,221,0.55)',borderWidth:0,borderRadius:2}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString()} PDP views`}}},
+      scales:{
+        x:{ticks:{font:{size:10},color:'#888780',maxRotation:0},grid:{display:false}},
+        y:{ticks:{font:{size:10},color:'#888780'},grid:{color:'rgba(136,135,128,0.1)'}}
+      }
+    }
+  });
+}
+
+function renderPaidFunnel(){
+  initPaidFunnelSelect();
+  const {raw,stepLabels,tableHeaders,crIdx}=getPaidFunnelData();
+  const idx=+document.getElementById('paid-funnel-month').value;
+  const row=raw[idx];
+  const m=row[0],pv=row[1],cr=row[crIdx];
+  const rates=row.slice(2,crIdx);
+
+  const stepVals=[pv];
+  for(let i=0;i<rates.length;i++) stepVals.push(Math.round(stepVals[i]*rates[i]));
+  const stepRates=[100,...rates.map(x=>x*100)];
+  const cumPct=stepVals.map(v=>v/pv*100);
+  const stepColors=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#0F6E56'].slice(0,stepVals.length);
+
+  document.getElementById('paid-funnel-meta').textContent=`${m}: ${pv.toLocaleString()} paid PDP views · overall CR ${(cr*100).toFixed(2)}%`;
+
+  if(charts['c-paid-funnel'])charts['c-paid-funnel'].destroy();
+  charts['c-paid-funnel']=new Chart(document.getElementById('c-paid-funnel'),{
+    type:'bar',
+    data:{labels:stepLabels,datasets:[{data:stepVals,backgroundColor:stepColors,borderWidth:0,borderRadius:4}]},
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>{
+          const i=c.dataIndex;
+          if(i===0)return `${c.raw.toLocaleString()} (start)`;
+          return `${c.raw.toLocaleString()} · step ${stepRates[i].toFixed(1)}% · cum ${cumPct[i].toFixed(2)}%`;
+        }}}
+      },
+      scales:{
+        x:{beginAtZero:true,ticks:{font:{size:10},color:'#888780'},grid:{color:'rgba(136,135,128,0.1)'}},
+        y:{ticks:{font:{size:11},color:'#444'},grid:{display:false}}
+      }
+    }
+  });
+
+  renderPaidTrendToggles();
+  drawPaidTrendChart();
+  drawPaidPvChart();
+
+  // table
   const thead=document.querySelector('#paid-funnel-table thead');
-  thead.innerHTML=`<tr><th>Month</th>${tableHeaders.map((h,i)=>`<th style="text-align:right">${i===0?h:h}</th>`).join('')}<th style="text-align:right">Overall CR</th></tr>`;
+  thead.innerHTML=`<tr><th>Month</th>${tableHeaders.map(h=>`<th style="text-align:right">${h}</th>`).join('')}<th style="text-align:right">Overall CR</th></tr>`;
 
   const tb=document.getElementById('paid-funnel-tbody');
   tb.innerHTML=raw.map((r,i)=>{
