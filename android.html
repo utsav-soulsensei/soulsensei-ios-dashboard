@@ -523,6 +523,7 @@
     <button class="tab-btn" data-tab="report" onclick="switchTab('report')">Full Report</button>
     <button class="tab-btn" data-tab="compare" onclick="switchTab('compare')">Compare</button>
     <button class="tab-btn" data-tab="funnels" onclick="switchTab('funnels')">Funnels</button>
+    <button class="tab-btn" data-tab="releases" onclick="switchTab('releases')">Releases</button>
   </nav>
 
   <div id="tab-charts">
@@ -1062,6 +1063,56 @@
     </div>
   </div><!-- /tab-funnels -->
 
+  <div id="tab-releases" style="display:none">
+    <p class="compare-note">Android release history overlaid on daily metrics. Each release is a dashed vertical line, coloured by its tech impact (red = High, orange = Medium, grey = Low). Pre/post window averages and delta are shown in the table below — click a row to focus that release on the chart.</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <label style="font-size:12px;color:var(--text-secondary);">Metric:</label>
+      <select id="rel-metric" onchange="renderReleases()" style="padding:6px 10px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></select>
+      <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">Window:</label>
+      <select id="rel-window" onchange="renderReleases()" style="padding:6px 10px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;">
+        <option value="7">±7 days</option>
+        <option value="14" selected>±14 days</option>
+        <option value="30">±30 days</option>
+      </select>
+      <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">Impact filter:</label>
+      <div id="rel-impact-filter" style="display:inline-flex;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;">
+        <button data-imp="all" onclick="setReleaseImpactFilter('all')" style="padding:5px 10px;border:0;background:var(--bg-secondary);color:var(--text);font-size:11px;cursor:pointer;">All</button>
+        <button data-imp="High" onclick="setReleaseImpactFilter('High')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">High</button>
+        <button data-imp="Medium" onclick="setReleaseImpactFilter('Medium')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">Medium</button>
+        <button data-imp="Low" onclick="setReleaseImpactFilter('Low')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">Low</button>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">daily metric · release markers</div>
+      <div class="chart-wrap" style="height:380px"><canvas id="c-releases" role="img" aria-label="Release impact chart">Release impact chart</canvas></div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:10px;display:flex;gap:18px;flex-wrap:wrap;">
+        <span><span style="display:inline-block;width:24px;height:0;border-top:1.5px solid #C9472A;border-style:dashed;vertical-align:middle;margin-right:4px;"></span>High impact</span>
+        <span><span style="display:inline-block;width:24px;height:0;border-top:1.5px solid #BA7517;border-style:dashed;vertical-align:middle;margin-right:4px;"></span>Medium</span>
+        <span><span style="display:inline-block;width:24px;height:0;border-top:1.5px solid #888780;border-style:dashed;vertical-align:middle;margin-right:4px;"></span>Low</span>
+        <span style="margin-left:auto;color:var(--text-tertiary);">Thin line = daily · Thick line = 7-day moving avg</span>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;overflow-x:auto;">
+      <div class="insights-section-title" style="margin-bottom:8px">Release impact (pre vs post window)</div>
+      <table class="insights-table" id="rel-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Ver</th>
+            <th>Impact</th>
+            <th>Summary</th>
+            <th style="text-align:right">Pre avg</th>
+            <th style="text-align:right">Post avg</th>
+            <th style="text-align:right">Δ</th>
+          </tr>
+        </thead>
+        <tbody id="rel-tbody"></tbody>
+      </table>
+    </div>
+  </div><!-- /tab-releases -->
+
   <div class="footer">SoulSensei Android · data Oct 2025 – May 2026 · built with Chart.js</div>
 
 </div>
@@ -1528,11 +1579,12 @@ function applyRange(){render();}
 
 /* ── tab switching ─────────────────────────────────────────── */
 function _doSwitchTab(tab){
-  ['charts','insights','report','compare','funnels'].forEach(t=>
+  ['charts','insights','report','compare','funnels','releases'].forEach(t=>
     document.getElementById('tab-'+t).style.display=tab===t?'':'none'
   );
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(tab==='funnels'){renderHpFunnel();renderFunnels();renderPaidFunnel();renderOneFunnel();}
+  if(tab==='releases')renderReleases();
 }
 function switchTab(tab){
   if(document.startViewTransition){
@@ -2140,6 +2192,241 @@ function renderHpFunnel(){
       <td style="text-align:right">${(b0*c0*100).toFixed(2)}%</td>
     </tr>`;
   }).join('');
+}
+
+/* ── releases tab ──────────────────────────────────────────── */
+const RELEASES=[
+  {date:'2025-12-06',version:'0.4.4',summary:'Exit-nudge fixes · Hybrid listing page',impact:'Medium'},
+  {date:'2025-12-16',version:'0.4.5',summary:'Meta tracking changes',impact:'Medium'},
+  {date:'2025-12-19',version:'0.4.6',summary:'Signup bottom-sheet improvements',impact:'Low'},
+  {date:'2025-12-27',version:'0.4.7',summary:'Login bottom-sheet improvements',impact:'Low'},
+  {date:'2026-01-01',version:'0.4.8',summary:'Meta events changes · multiday course changes',impact:'Medium'},
+  {date:'2026-01-05',version:'0.4.9',summary:'free_purchase added · international signup fixed',impact:'Medium'},
+  {date:'2026-01-08',version:'0.5.0',summary:'Listing page new design · bottom nav redesign · ANR fixes · 10-min attendance · course pdp FAQ',impact:'High'},
+  {date:'2026-01-09',version:'0.5.1',summary:'1-on-1 listing & hybrid listing crash fixes',impact:'Low'},
+  {date:'2026-01-12',version:'0.5.2',summary:'GST',impact:'High'},
+  {date:'2026-01-14',version:'0.5.3',summary:'Meta GST fix',impact:'Low'},
+  {date:'2026-01-15',version:'0.5.4',summary:'Removed old 1-on-1 listing',impact:'Low'},
+  {date:'2026-01-16',version:'0.5.5',summary:'Analytic events mapping with default events',impact:'Low'},
+  {date:'2026-01-20',version:'0.5.6',summary:'Analytic amount/price typecasting fix (string → double)',impact:'High'},
+  {date:'2026-01-23',version:'0.5.7',summary:'New hamburger · all SDK updates',impact:'High'},
+  {date:'2026-01-29',version:'0.5.8',summary:'ad_id init reorder · Firebase/Meta manual init removed · app_open renamed · custom app_install · logout/delete events · app-download source',impact:'High'},
+  {date:'2026-01-31',version:'0.5.9',summary:'Deeplink crash fix',impact:'Low'},
+  {date:'2026-02-02',version:'0.6.0',summary:'Mahashivratri changes',impact:'Low'},
+  {date:'2026-02-04',version:'0.6.1',summary:'Changes for meta events',impact:'Medium'},
+  {date:'2026-02-06',version:'0.6.2',summary:'Auto-open Razorpay after login on cart page',impact:'Medium'},
+  {date:'2026-02-18',version:'0.6.3',summary:'Singular integration',impact:'Low'},
+  {date:'2026-02-25',version:'0.6.4',summary:'Zoom share-screen crash · 1-on-1 pdp crash · deeplink passkey crash',impact:'Low'},
+  {date:'2026-03-02',version:'0.6.5',summary:'Agora SDK on demand · slot_available event on leader_o3 page view · PDP card redesign · unmute hero rail by volume · mute-flag unification',impact:'High'},
+  {date:'2026-03-05',version:'0.6.6',summary:'Removed Appsflyer',impact:'Low'},
+  {date:'2026-03-09',version:'0.6.7',summary:'New waiting room for Zoom session',impact:'Medium'},
+  {date:'2026-03-16',version:'0.6.8',summary:'New library design · new group icon on SoulSession tab · remove cart for free course',impact:'Medium'},
+  {date:'2026-03-18',version:'0.6.9',summary:'Hero rail fixes · multiday course check fixed',impact:'Low'},
+  {date:'2026-03-23',version:'0.7.0',summary:'Technique & event listing deeplink fixed · hygiene UI fixes',impact:'Low'},
+  {date:'2026-04-01',version:'0.7.1',summary:'App launch time improvements',impact:'Low'},
+  {date:'2026-04-02',version:'0.7.2',summary:'Zoom large-session token · home 2x3 grid · new deeplinks (LastBoughtCourse, FirstUpcomingCourse)',impact:'Low'},
+  {date:'2026-04-06',version:'0.7.3',summary:'Cart screen new UI · Firebase performance SDK added',impact:'Medium'},
+  {date:'2026-04-07',version:'0.7.4',summary:'Fixed crash on slot null from 1-on-1 pdp',impact:'Low'},
+  {date:'2026-04-15',version:'0.7.5',summary:'Push notification',impact:'Low'},
+  {date:'2026-04-16',version:'0.7.6',summary:'Some crash fixes',impact:'Low'},
+  {date:'2026-04-22',version:'0.7.7',summary:'Zoom crash fixed',impact:'Low'},
+  {date:'2026-04-28',version:'0.7.8',summary:'JWT token expire fixed · Facebook deferred deeplink support · subscription',impact:'High'},
+  {date:'2026-04-30',version:'0.7.9',summary:'Splash screen · app optimisations (load time) · deeplink manager crash · PDP nav from cart · new slot booking',impact:'High'},
+  {date:'2026-05-05',version:'0.8.0',summary:'API cache issue',impact:'Medium'},
+  {date:'2026-05-12',version:'0.8.1',summary:'Push notification image fix · bottom nav bar tab deeplink click fix',impact:'Low'},
+  {date:'2026-05-13',version:'0.8.2',summary:'cancelAtPeriodEnd check in subscription manage page · GA4 martech task',impact:'Medium'},
+  {date:'2026-05-19',version:'0.8.3',summary:'Blocked Google review-bot crash logs · new home page widgets · hero widget date fix · deeplink persistence on force update',impact:'Low'},
+  {date:'2026-05-20',version:'0.8.4',summary:'Payment extension in Agora · checkout_click event on Pay Now in cart (logged-out only)',impact:'Medium'}
+];
+
+const RELEASE_IMPACT_COLOR={High:'#C9472A',Medium:'#BA7517',Low:'#888780'};
+
+const RELEASE_METRICS={
+  cr:       {label:'Conversion rate (%)', build:()=>CR_RAW.map(r=>[r[0],r[1]*100]), fmt:v=>v.toFixed(2)+'%'},
+  roas:     {label:'ROAS (×)', build:()=>ROAS_RAW.map(r=>[r[0],r[1]]), fmt:v=>v.toFixed(2)+'×'},
+  purchases:{label:'Total purchases', build:()=>NR_RAW.map(r=>[r[0],r[1]]), fmt:v=>v.toFixed(1)},
+  newpct:   {label:'New buyer %', build:()=>NR_RAW.map(r=>[r[0],r[1]>0?r[2]/r[1]*100:0]), fmt:v=>v.toFixed(1)+'%'},
+  rev:      {label:'Total revenue (₹)', build:()=>REV_RAW.map(r=>[r[0],r[1]+r[2]]), fmt:v=>'₹'+Math.round(v).toLocaleString()},
+  rev_grp:  {label:'Group revenue (₹)', build:()=>REV_RAW.map(r=>[r[0],r[1]]), fmt:v=>'₹'+Math.round(v).toLocaleString()},
+  rev_oo:   {label:'1:1 revenue (₹)', build:()=>REV_RAW.map(r=>[r[0],r[2]]), fmt:v=>'₹'+Math.round(v).toLocaleString()},
+  rev_oo_pct:{label:'1:1 revenue share (%)', build:()=>REV_RAW.map(r=>[r[0],(r[1]+r[2])>0?r[2]/(r[1]+r[2])*100:0]), fmt:v=>v.toFixed(1)+'%'}
+};
+
+let releaseImpactFilter='all';
+let releaseFocusIdx=null;
+
+function setReleaseImpactFilter(imp){
+  releaseImpactFilter=imp;
+  document.querySelectorAll('#rel-impact-filter button').forEach(b=>{
+    const active=b.dataset.imp===imp;
+    b.style.background=active?'var(--bg-secondary)':'var(--bg)';
+    b.style.color=active?'var(--text)':'var(--text-secondary)';
+  });
+  renderReleases();
+}
+
+function initReleaseMetricSelect(){
+  const sel=document.getElementById('rel-metric');
+  if(!sel||sel.options.length)return;
+  Object.entries(RELEASE_METRICS).forEach(([k,v])=>{
+    const o=document.createElement('option');
+    o.value=k;o.textContent=v.label;
+    sel.appendChild(o);
+  });
+  sel.value='cr';
+}
+
+function parseDailyDate(s){return new Date(s);}
+
+function computeWindowStats(series,centerDate,windowDays){
+  const c=centerDate.getTime();
+  const dayMs=86400000;
+  const preStart=c-windowDays*dayMs, preEnd=c-dayMs;
+  const postStart=c+dayMs, postEnd=c+windowDays*dayMs;
+  let preSum=0,preN=0,postSum=0,postN=0;
+  series.forEach(([d,v])=>{
+    const t=parseDailyDate(d).getTime();
+    if(t>=preStart&&t<=preEnd){preSum+=v;preN++;}
+    else if(t>=postStart&&t<=postEnd){postSum+=v;postN++;}
+  });
+  const pre=preN?preSum/preN:null;
+  const post=postN?postSum/postN:null;
+  const delta=(pre!=null&&post!=null&&pre!==0)?(post-pre)/Math.abs(pre)*100:null;
+  return {pre,post,delta,preN,postN};
+}
+
+function formatLabelDate(iso){
+  const d=new Date(iso);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function renderReleases(){
+  initReleaseMetricSelect();
+  const metricKey=document.getElementById('rel-metric').value;
+  const windowDays=+document.getElementById('rel-window').value;
+  const metric=RELEASE_METRICS[metricKey];
+  const series=metric.build();
+
+  const filteredReleases=RELEASES.filter(r=>releaseImpactFilter==='all'||r.impact===releaseImpactFilter);
+
+  const labels=series.map(([d])=>d);
+  const values=series.map(([,v])=>v);
+  const ma=values.map((_,i)=>{
+    const s=Math.max(0,i-6);
+    const sl=values.slice(s,i+1);
+    return sl.reduce((a,b)=>a+b,0)/sl.length;
+  });
+
+  let focusPreLine=null,focusPostLine=null;
+  if(releaseFocusIdx!=null){
+    const rel=RELEASES[releaseFocusIdx];
+    const relDate=parseDailyDate(rel.date);
+    const stats=computeWindowStats(series,relDate,windowDays);
+    focusPreLine=labels.map(d=>{
+      const t=parseDailyDate(d).getTime();
+      const rt=relDate.getTime();
+      return (t<rt && t>=rt-windowDays*86400000)?stats.pre:null;
+    });
+    focusPostLine=labels.map(d=>{
+      const t=parseDailyDate(d).getTime();
+      const rt=relDate.getTime();
+      return (t>rt && t<=rt+windowDays*86400000)?stats.post:null;
+    });
+  }
+
+  const datasets=[
+    {label:metric.label,data:values,borderColor:'rgba(55,138,221,0.45)',backgroundColor:'rgba(55,138,221,0.45)',borderWidth:1,pointRadius:0,tension:0.2,fill:false},
+    {label:'7-day MA',data:ma,borderColor:'#378ADD',backgroundColor:'#378ADD',borderWidth:2,pointRadius:0,tension:0.3,fill:false}
+  ];
+  if(focusPreLine){
+    datasets.push({label:'pre avg',data:focusPreLine,borderColor:'#1D9E75',borderWidth:1.5,borderDash:[2,3],pointRadius:0,fill:false,spanGaps:false});
+    datasets.push({label:'post avg',data:focusPostLine,borderColor:'#D85A30',borderWidth:1.5,borderDash:[2,3],pointRadius:0,fill:false,spanGaps:false});
+  }
+
+  const releaseMarkerPlugin={
+    id:'releaseMarkers',
+    afterDatasetsDraw(chart){
+      const {ctx, chartArea:{top,bottom,left,right}, scales:{x}}=chart;
+      filteredReleases.forEach(r=>{
+        const idx=labels.indexOf(formatLabelDate(r.date));
+        if(idx<0)return;
+        const xPos=x.getPixelForValue(idx);
+        if(xPos<left||xPos>right)return;
+        const focused=releaseFocusIdx!=null&&RELEASES[releaseFocusIdx]===r;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(xPos,top);
+        ctx.lineTo(xPos,bottom);
+        ctx.lineWidth=focused?2:1;
+        ctx.strokeStyle=RELEASE_IMPACT_COLOR[r.impact];
+        ctx.setLineDash(focused?[]:[3,3]);
+        ctx.globalAlpha=focused?0.95:0.55;
+        ctx.stroke();
+        if(focused||r.impact==='High'){
+          ctx.font='10px sans-serif';
+          ctx.fillStyle=RELEASE_IMPACT_COLOR[r.impact];
+          ctx.globalAlpha=focused?1:0.8;
+          ctx.fillText('v'+r.version,xPos+3,top+10);
+        }
+        ctx.restore();
+      });
+    }
+  };
+
+  if(charts['c-releases'])charts['c-releases'].destroy();
+  charts['c-releases']=new Chart(document.getElementById('c-releases'),{
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:items=>items[0]?.label||'',
+          label:c=>{
+            if(c.raw==null)return null;
+            return `${c.dataset.label}: ${metric.fmt(c.raw)}`;
+          }
+        }}
+      },
+      scales:{
+        x:{ticks:{font:{size:10},color:'#888780',maxTicksLimit:14,maxRotation:0},grid:{display:false}},
+        y:{ticks:{font:{size:10},color:'#888780'},grid:{color:'rgba(136,135,128,0.1)'}}
+      }
+    },
+    plugins:[releaseMarkerPlugin]
+  });
+
+  const tb=document.getElementById('rel-tbody');
+  tb.innerHTML=[...RELEASES].reverse().map((r,reverseIdx)=>{
+    const origIdx=RELEASES.length-1-reverseIdx;
+    if(releaseImpactFilter!=='all'&&r.impact!==releaseImpactFilter)return '';
+    const stats=computeWindowStats(series,parseDailyDate(r.date),windowDays);
+    const fmt=v=>v==null?'—':metric.fmt(v);
+    const deltaStr=stats.delta==null?'—':
+      (stats.delta>=0?'+':'')+stats.delta.toFixed(1)+'%';
+    const deltaColor=stats.delta==null?'var(--text-tertiary)':
+      Math.abs(stats.delta)<5?'var(--text-tertiary)':
+      stats.delta>0?'#1D9E75':'#D85A30';
+    const impColor=RELEASE_IMPACT_COLOR[r.impact];
+    const sel=releaseFocusIdx===origIdx?'background:var(--bg-secondary);':'';
+    return `<tr style="cursor:pointer;${sel}" onclick="focusRelease(${origIdx})">
+      <td style="white-space:nowrap;font-variant-numeric:tabular-nums;">${r.date}</td>
+      <td style="font-variant-numeric:tabular-nums;">v${r.version}</td>
+      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${impColor};margin-right:5px;"></span>${r.impact}</td>
+      <td style="font-size:12px;color:var(--text-secondary);">${r.summary}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;">${fmt(stats.pre)}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;">${fmt(stats.post)}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;color:${deltaColor};font-weight:${stats.delta!=null&&Math.abs(stats.delta)>=10?500:400};">${deltaStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+function focusRelease(idx){
+  releaseFocusIdx=releaseFocusIdx===idx?null:idx;
+  renderReleases();
 }
 
 /* ── insights builder ──────────────────────────────────────── */
