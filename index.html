@@ -463,6 +463,27 @@
     color: var(--text-tertiary);
     margin-bottom: 10px;
   }
+
+  /* ── funnel viz ── */
+  .funnel-summary { background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+  .funnel-summary-title { color: var(--text-tertiary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .funnel-summary-main { color: var(--text); font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .funnel-summary-leak { color: #C9472A; font-size: 12px; font-weight: 500; display:flex; align-items:center; gap:6px; }
+  .funnel-summary-leak::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #D85A30; flex-shrink: 0; }
+  .funnel-viz { padding: 6px 0; }
+  .funnel-step { display: grid; grid-template-columns: 130px 1fr 64px 50px; gap: 10px; align-items: center; padding: 5px 0; font-size: 12px; }
+  .funnel-step-label { color: var(--text); font-weight: 500; }
+  .funnel-bar-wrap { background: rgba(136,135,128,0.08); border-radius: 4px; overflow: hidden; height: 24px; position: relative; }
+  .funnel-bar { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .funnel-count { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 500; }
+  .funnel-cumul { text-align: right; color: var(--text-tertiary); font-variant-numeric: tabular-nums; font-size: 11px; }
+  .funnel-rate { padding: 4px 0 4px 140px; font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+  .funnel-rate.biggest { color: #C9472A; font-weight: 500; padding-left: 122px; }
+  .funnel-rate.biggest::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #D85A30; }
+  .funnel-arrow { color: var(--text-tertiary); }
+  .funnel-vs-avg { color: var(--text-tertiary); font-size: 10.5px; margin-left: 4px; }
+  .funnel-vs-up { color: #1D9E75; }
+  .funnel-vs-dn { color: #D85A30; }
 </style>
 </head>
 <body>
@@ -934,7 +955,7 @@
       <div class="charts-grid-2" style="margin-bottom:16px;">
         <div class="chart-card">
           <div class="card-title">paid PDP funnel — selected month</div>
-          <div class="chart-wrap" style="height:360px"><canvas id="c-paid-funnel" role="img" aria-label="Paid PDP funnel">Paid funnel chart</canvas></div>
+          <div id="paid-funnel-viz" style="padding:14px 12px 6px;"></div>
         </div>
         <div class="chart-card">
           <div class="card-title">overall PDP → purchase CR by month</div>
@@ -1516,34 +1537,58 @@ function renderPaidFunnel(){
   const rates=row.slice(2,crIdx); // step rates
 
   // cumulative counts
-  const stepVals=[pv];
-  for(let i=0;i<rates.length;i++) stepVals.push(Math.round(stepVals[i]*rates[i]));
-  const stepRates=[100,...rates.map(x=>x*100)];
-  const cumPct=stepVals.map(v=>v/pv*100);
-  const stepColors=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#0F6E56'].slice(0,stepVals.length);
+  const counts=[pv];
+  for(let i=0;i<rates.length;i++) counts.push(Math.round(counts[i]*rates[i]));
+  const cumPct=counts.map(v=>v/pv);
+  const stepColors=['#888780','#378ADD','#1D9E75','#534AB7','#D85A30','#0F6E56'].slice(0,counts.length);
+
+  // all-month averages per step (exclude zeros = no-data months)
+  const avgRates=rates.map((_,si)=>{
+    const vals=raw.map(r=>r[2+si]).filter(v=>v>0);
+    return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+  });
+
+  // biggest drop step (largest absolute loss in cumulative %)
+  let biggestIdx=0,biggestLoss=0;
+  for(let i=0;i<rates.length;i++){
+    const loss=cumPct[i]-cumPct[i+1];
+    if(loss>biggestLoss){biggestLoss=loss;biggestIdx=i;}
+  }
 
   document.getElementById('paid-funnel-meta').textContent=`${m}: ${pv.toLocaleString()} paid PDP views · overall CR ${(cr*100).toFixed(2)}%`;
 
-  if(charts['c-paid-funnel'])charts['c-paid-funnel'].destroy();
-  charts['c-paid-funnel']=new Chart(document.getElementById('c-paid-funnel'),{
-    type:'bar',
-    data:{labels:stepLabels,datasets:[{data:stepVals,backgroundColor:stepColors,borderWidth:0,borderRadius:4}]},
-    options:{
-      indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:c=>{
-          const i=c.dataIndex;
-          if(i===0)return `${c.raw.toLocaleString()} (start)`;
-          return `${c.raw.toLocaleString()} · step ${stepRates[i].toFixed(1)}% · cum ${cumPct[i].toFixed(2)}%`;
-        }}}
-      },
-      scales:{
-        x:{beginAtZero:true,ticks:{font:{size:10},color:'#888780'},grid:{color:'rgba(136,135,128,0.1)'}},
-        y:{ticks:{font:{size:11},color:'#444'},grid:{display:false}}
-      }
+  // build custom HTML funnel viz
+  const clean=s=>s.replace('→ ','').trim();
+  let html=`<div class="funnel-summary">
+    <div class="funnel-summary-title">${m} · overview</div>
+    <div class="funnel-summary-main">${pv.toLocaleString()} paid PDP views → ${counts[counts.length-1].toLocaleString()} purchases · CR <b>${(cr*100).toFixed(2)}%</b></div>
+    <div class="funnel-summary-leak">Biggest leak: ${clean(stepLabels[biggestIdx])} → ${clean(stepLabels[biggestIdx+1])} · ${counts[biggestIdx].toLocaleString()} → ${counts[biggestIdx+1].toLocaleString()} (kept ${(rates[biggestIdx]*100).toFixed(1)}%, lost ${((1-rates[biggestIdx])*100).toFixed(1)}%)</div>
+  </div>
+  <div class="funnel-viz">`;
+  for(let i=0;i<stepLabels.length;i++){
+    const w=Math.max(cumPct[i]*100,0.6);
+    html+=`<div class="funnel-step">
+      <div class="funnel-step-label">${clean(stepLabels[i])}</div>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${w}%;background:${stepColors[i]}"></div></div>
+      <div class="funnel-count">${counts[i].toLocaleString()}</div>
+      <div class="funnel-cumul">${(cumPct[i]*100).toFixed(1)}%</div>
+    </div>`;
+    if(i<rates.length){
+      const r=rates[i],a=avgRates[i];
+      const deltaPp=(r-a)*100;
+      const cls=Math.abs(deltaPp)<1.5?'':deltaPp>0?'funnel-vs-up':'funnel-vs-dn';
+      const arr=Math.abs(deltaPp)<1.5?'·':deltaPp>0?'↑':'↓';
+      const sign=deltaPp>=0?'+':'';
+      const isBig=i===biggestIdx;
+      html+=`<div class="funnel-rate${isBig?' biggest':''}">
+        <span class="funnel-arrow">↓</span>
+        <span><b>${(r*100).toFixed(1)}%</b> kept</span>
+        <span class="funnel-vs-avg ${cls}">vs avg ${(a*100).toFixed(0)}% ${arr} ${Math.abs(deltaPp)>=1?sign+deltaPp.toFixed(0)+'pp':''}</span>
+      </div>`;
     }
-  });
+  }
+  html+='</div>';
+  document.getElementById('paid-funnel-viz').innerHTML=html;
 
   // overall CR trend
   const months=raw.map(r=>r[0]);
