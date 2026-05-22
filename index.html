@@ -1153,6 +1153,7 @@
         <button id="ret-view-curves" onclick="setRetentionView('curves')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">Curves</button>
         <button id="ret-view-msince" onclick="setRetentionView('msince')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">M-since trends</button>
         <button id="ret-view-avg" onclick="setRetentionView('avg')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">Avg by M-since</button>
+        <button id="ret-view-ltv" onclick="setRetentionView('ltv')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">LTV</button>
       </div>
     </div>
 
@@ -1197,6 +1198,36 @@
       <div class="chart-card">
         <div class="card-title">average retention curve (across all cohorts with data at each M-since)</div>
         <div class="chart-wrap" style="height:360px"><canvas id="c-retention-avg" role="img" aria-label="Average retention curve">Average retention curve</canvas></div>
+      </div>
+    </div>
+
+    <!-- LTV view (iOS only) -->
+    <div id="ret-ltv-view" style="display:none;">
+      <p class="compare-note" style="margin-top:0">iOS cohort LTV — total revenue per acquired user, by first-order month. The Revenue / Users / Web toggles above don't apply to this view (LTV data is iOS-only).</p>
+      <div class="charts-grid-2" style="margin-bottom:16px;">
+        <div class="chart-card">
+          <div class="card-title">LTV per cohort (₹/user)</div>
+          <div class="chart-wrap" style="height:340px"><canvas id="c-ltv" role="img" aria-label="LTV per cohort">LTV chart</canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-title">total revenue vs acquired users</div>
+          <div class="chart-wrap" style="height:340px"><canvas id="c-ltv-rev" role="img" aria-label="Revenue and users by cohort">Revenue vs users</canvas></div>
+        </div>
+      </div>
+      <div style="margin-top:18px;overflow-x:auto;">
+        <div class="insights-section-title" style="margin-bottom:8px">Cohort LTV detail</div>
+        <table class="insights-table" id="ltv-table">
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th style="text-align:right">Acq Users</th>
+              <th style="text-align:right">Total Rev</th>
+              <th style="text-align:right">LTV (₹/user)</th>
+              <th style="text-align:right">vs Avg LTV</th>
+            </tr>
+          </thead>
+          <tbody id="ltv-tbody"></tbody>
+        </table>
       </div>
     </div>
   </div><!-- /tab-retention -->
@@ -2688,7 +2719,7 @@ let retentionVisibleCohorts={};
 
 function setRetentionView(v){
   retentionView=v;
-  ['heatmap','curves','msince','avg'].forEach(x=>{
+  ['heatmap','curves','msince','avg','ltv'].forEach(x=>{
     const b=document.getElementById('ret-view-'+x);
     b.style.background=v===x?'var(--bg-secondary)':'var(--bg)';
     b.style.color=v===x?'var(--text)':'var(--text-secondary)';
@@ -2697,6 +2728,7 @@ function setRetentionView(v){
   document.getElementById('ret-curves-view').style.display=v==='curves'?'':'none';
   document.getElementById('ret-msince-view').style.display=v==='msince'?'':'none';
   document.getElementById('ret-avg-view').style.display=v==='avg'?'':'none';
+  document.getElementById('ret-ltv-view').style.display=v==='ltv'?'':'none';
   renderRetention();
 }
 
@@ -3006,6 +3038,94 @@ function drawRetentionMsince(){
   });
 }
 
+/* LTV view (iOS only) */
+const LTV_RAW=[
+  ['Apr 2025',25383,10,2538],
+  ['May 2025',101786,15,6786],
+  ['Jun 2025',47411,21,2258],
+  ['Jul 2025',59835,14,4274],
+  ['Aug 2025',173540,27,6427],
+  ['Sep 2025',193342,44,4394],
+  ['Oct 2025',200296,37,5413],
+  ['Nov 2025',244115,72,3390],
+  ['Dec 2025',221905,63,3522],
+  ['Jan 2026',197010,69,2855],
+  ['Feb 2026',163311,57,2865],
+  ['Mar 2026',248781,66,3769],
+  ['Apr 2026',162636,66,2464]
+];
+
+function renderLtvView(){
+  const labels=LTV_RAW.map(r=>r[0]);
+  const totalRev=LTV_RAW.map(r=>r[1]);
+  const acqUsers=LTV_RAW.map(r=>r[2]);
+  const ltv=LTV_RAW.map(r=>r[3]);
+  const avgLtv=ltv.reduce((a,b)=>a+b,0)/ltv.length;
+  const maxLtv=Math.max(...ltv);
+
+  // LTV bar chart with avg line
+  if(charts['c-ltv'])charts['c-ltv'].destroy();
+  charts['c-ltv']=new Chart(document.getElementById('c-ltv'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'LTV (₹/user)',data:ltv,backgroundColor:ltv.map(v=>v>=avgLtv?'rgba(29,158,117,0.7)':'rgba(216,90,48,0.55)'),borderWidth:0,borderRadius:3,order:2},
+      {label:'Avg LTV',data:Array(labels.length).fill(+avgLtv.toFixed(0)),type:'line',borderColor:'#534AB7',borderWidth:1.5,borderDash:[3,3],pointRadius:0,fill:false,order:1}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{font:{size:10},color:'#666',boxWidth:10,padding:8}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ₹${Math.round(c.raw).toLocaleString()}`}}
+      },
+      scales:{
+        x:{ticks:{font:{size:10},color:'#888780'},grid:{display:false}},
+        y:{ticks:{font:{size:10},color:'#888780',callback:v=>'₹'+(v/1000).toFixed(1)+'k'},grid:{color:'rgba(136,135,128,0.1)'}}
+      }
+    }
+  });
+
+  // Revenue + Users dual-axis
+  if(charts['c-ltv-rev'])charts['c-ltv-rev'].destroy();
+  charts['c-ltv-rev']=new Chart(document.getElementById('c-ltv-rev'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Total revenue (₹)',data:totalRev,backgroundColor:'rgba(55,138,221,0.6)',borderWidth:0,borderRadius:3,yAxisID:'y'},
+      {label:'Acq users',data:acqUsers,type:'line',borderColor:'#D85A30',backgroundColor:'#D85A30',borderWidth:2,pointRadius:3,tension:0.25,fill:false,yAxisID:'y2'}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{font:{size:10},color:'#666',boxWidth:10,padding:8}},
+        tooltip:{callbacks:{label:c=>{
+          if(c.dataset.label.includes('Acq'))return `${c.dataset.label}: ${c.raw}`;
+          return `${c.dataset.label}: ₹${c.raw.toLocaleString()}`;
+        }}}
+      },
+      scales:{
+        x:{ticks:{font:{size:10},color:'#888780'},grid:{display:false}},
+        y:{position:'left',ticks:{font:{size:10},color:'#888780',callback:v=>'₹'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(136,135,128,0.1)'},title:{display:true,text:'Revenue',font:{size:10},color:'#888780'}},
+        y2:{position:'right',ticks:{font:{size:10},color:'#D85A30'},grid:{display:false},title:{display:true,text:'Users',font:{size:10},color:'#D85A30'}}
+      }
+    }
+  });
+
+  // table
+  const tb=document.getElementById('ltv-tbody');
+  tb.innerHTML=LTV_RAW.map(r=>{
+    const [m,rev,u,l]=r;
+    const delta=(l-avgLtv)/avgLtv*100;
+    const color=Math.abs(delta)<5?'var(--text-tertiary)':delta>0?'#1D9E75':'#D85A30';
+    const deltaStr=(delta>=0?'+':'')+delta.toFixed(0)+'%';
+    return `<tr>
+      <td>${m}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;">${u}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;">₹${rev.toLocaleString()}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:500;">₹${l.toLocaleString()}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;color:${color};">${deltaStr}</td>
+    </tr>`;
+  }).join('');
+}
+
 function renderRetention(){
   renderRetentionSummary();
   if(retentionView==='heatmap'){
@@ -3016,6 +3136,8 @@ function renderRetention(){
     drawRetentionMsince();
   } else if(retentionView==='avg'){
     drawRetentionAvg();
+  } else if(retentionView==='ltv'){
+    renderLtvView();
   }
 }
 
