@@ -1319,7 +1319,7 @@
   </div><!-- /tab-retention -->
 
   <div id="tab-features" style="display:none">
-    <p class="compare-note">Features under consideration, each justified by what the dashboard data already shows. Open the linked tabs for the underlying evidence. Click a card title to expand the "data behind it" section.</p>
+    <p class="compare-note">Features under consideration, each justified by what the dashboard data already shows. Ordered by standard CRO sequencing — fix friction closest to revenue first (auth, payment), then PDP/cart decision moment, then upstream discovery (listing, personalisation). Click a card to expand the data behind it.</p>
 
     <div id="features-list" style="display:flex;flex-direction:column;gap:16px;margin-top:12px;"></div>
   </div><!-- /tab-features -->
@@ -3235,40 +3235,10 @@ function renderRetention(){
 }
 
 /* ── features tab ──────────────────────────────────────────── */
+/* Ordering reflects standard CRO sequencing — fix friction closest to
+   revenue first (auth, payment), then PDP / cart decision moment,
+   then upstream discovery (listing, personalisation). */
 const FEATURES=[
-  {
-    title:'Native Payment Integration + WhatsApp Pay',
-    area:'Payment',
-    priority:'high',
-    summary:'Replace the Razorpay modal with native platform payment (Apple Pay / Google Pay) and add WhatsApp Pay as a parallel rail. Goal: a one-tap payment step plus richer attribution on which methods convert.',
-    evidence:[
-      {
-        title:'Payment Proceed → Payment is one of the most volatile steps',
-        body:'iOS Paid PDP logged-in May 2026: Payment Proceed → Payment is 82.6%, but it has swung from 50% (Jan) to 91% (Apr) over recent months. That ~40pp range on a single step says payment UX itself is creating loss — a stable native-pay flow should compress this volatility and lift the floor.',
-        link:'See Funnels → Paid PDP (Logged-in toggle)'
-      },
-      {
-        title:'No payment-method telemetry today',
-        body:'The dashboard treats Payment Proceed → Payment as a single transition. We can\'t see which method (UPI, card, netbanking, wallet) users pick, how long they spend, or where they bail. Switching to native payment with proper events (method_selected, payment_started, payment_failed_reason) gives us the most-needed data layer that\'s currently missing.',
-        link:'Build into release scope'
-      },
-      {
-        title:'WhatsApp is already a meaningful attributed source',
-        body:'Across iOS SRC: WATI_BOT, WA_Channel, CRM_WA together drive ~3% of attributed iOS purchases. On Android they are ~4–5%. Users are already engaging in WhatsApp before the app — adding WhatsApp Pay closes the loop so they never leave the channel they\'re comfortable in.',
-        link:'See Charts → Purchase source breakdown'
-      },
-      {
-        title:'Past payment releases were High-impact',
-        body:'Tagged High impact in release history: Android v0.0.3 (Apr 2025) Razorpay integration; iOS v8.7 (Jan 16) Go-to-payment → login → Razorpay modal; iOS v8.9 (Jan 24) cart/payment/order tech opts. Payment-flow changes have repeatedly moved business metrics, so further investment compounds.',
-        link:'See Releases → focus High impact'
-      }
-    ],
-    impact:[
-      'Primary lever: lift Payment Proceed → Payment floor from ~50% (Jan) to a sustained 75%+. Even on the logged-in funnel alone, that\'s ~+15pp on a step ~5,000 users/month pass through — directly converting to incremental purchases.',
-      'Secondary lever: instrumentation. Today we can\'t answer "which payment method has the highest failure rate" or "did the drop come from UPI timeout or card decline". That data layer makes every future payment tweak measurable.',
-      'Tertiary lever: WhatsApp Pay opens a new path for the 3–5% of attributed users already arriving from WhatsApp channels — and probably some unknown share of the "undefined" ~67% on iOS who are organic WhatsApp shares.'
-    ]
-  },
   {
     title:'Complete Login Revamp',
     area:'Auth / Login',
@@ -3300,6 +3270,39 @@ const FEATURES=[
       'Primary lever: shift X% of paid PDP traffic from logged-out (~2.6% CR) to logged-in (~5.1% CR). Each 20pp shift of users to the logged-in path lifts overall paid CR by ~0.5pp — large given current PDP volumes.',
       'Secondary lever: insulate paid CR from OTP delivery / SMS-provider issues. Android\'s May 2026 collapse cost ~₹50k+ in lost paid revenue in 21 days — a robust auth flow prevents recurrence.',
       'Rough size: a successful revamp that doubles the logged-in share of paid PDP traffic would lift overall Paid PDP CR by ~1pp (from ~3% to ~4%) — roughly a 33% relative gain on the entire paid funnel, before any PDP / cart improvements.'
+    ]
+  },
+  {
+    title:'Native Payment Integration + WhatsApp Pay',
+    area:'Payment',
+    priority:'high',
+    summary:'Replace the Razorpay modal with native platform payment (Apple Pay / Google Pay) and add WhatsApp Pay as a parallel rail. Goal: a one-tap payment step plus richer attribution on which methods convert.',
+    evidence:[
+      {
+        title:'Payment Proceed → Payment is one of the most volatile steps',
+        body:'iOS Paid PDP logged-in May 2026: Payment Proceed → Payment is 82.6%, but it has swung from 50% (Jan) to 91% (Apr) over recent months. That ~40pp range on a single step says payment UX itself is creating loss — a stable native-pay flow should compress this volatility and lift the floor.',
+        link:'See Funnels → Paid PDP (Logged-in toggle)'
+      },
+      {
+        title:'No payment-method telemetry today',
+        body:'The dashboard treats Payment Proceed → Payment as a single transition. We can\'t see which method (UPI, card, netbanking, wallet) users pick, how long they spend, or where they bail. Switching to native payment with proper events (method_selected, payment_started, payment_failed_reason) gives us the most-needed data layer that\'s currently missing.',
+        link:'Build into release scope'
+      },
+      {
+        title:'WhatsApp is already a meaningful attributed source',
+        body:'Across iOS SRC: WATI_BOT, WA_Channel, CRM_WA together drive ~3% of attributed iOS purchases. On Android they are ~4–5%. Users are already engaging in WhatsApp before the app — adding WhatsApp Pay closes the loop so they never leave the channel they\'re comfortable in.',
+        link:'See Charts → Purchase source breakdown'
+      },
+      {
+        title:'Past payment releases were High-impact',
+        body:'Tagged High impact in release history: Android v0.0.3 (Apr 2025) Razorpay integration; iOS v8.7 (Jan 16) Go-to-payment → login → Razorpay modal; iOS v8.9 (Jan 24) cart/payment/order tech opts. Payment-flow changes have repeatedly moved business metrics, so further investment compounds.',
+        link:'See Releases → focus High impact'
+      }
+    ],
+    impact:[
+      'Primary lever: lift Payment Proceed → Payment floor from ~50% (Jan) to a sustained 75%+. Even on the logged-in funnel alone, that\'s ~+15pp on a step ~5,000 users/month pass through — directly converting to incremental purchases.',
+      'Secondary lever: instrumentation. Today we can\'t answer "which payment method has the highest failure rate" or "did the drop come from UPI timeout or card decline". That data layer makes every future payment tweak measurable.',
+      'Tertiary lever: WhatsApp Pay opens a new path for the 3–5% of attributed users already arriving from WhatsApp channels — and probably some unknown share of the "undefined" ~67% on iOS who are organic WhatsApp shares.'
     ]
   },
   {
