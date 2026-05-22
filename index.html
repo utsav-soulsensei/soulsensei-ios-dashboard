@@ -3231,6 +3231,55 @@ function renderRetention(){
 /* ── features tab ──────────────────────────────────────────── */
 const FEATURES=[
   {
+    title:'Listing Page — Card redesign · Filters · Decision aids',
+    area:'Listing / Discovery',
+    priority:'high',
+    summary:'Three coordinated changes on the listing page: (a) refresh the card design (denser layout / clearer hierarchy), (b) overhaul filters (more sensible defaults, sticky on scroll, faceted), and (c) add decision-aid features (compare, "best for you" badge, length / difficulty tags) so users pick the right session faster.',
+    evidence:[
+      {
+        title:'Past listing redesign proved the lever',
+        body:'v8.4 (Jan 7) "Listing pages redesign" delivered a clean +3pp Listing→PDP step-change: Dec 2025 53.0% → Feb 2026 56.1%. That\'s the cleanest single-release win in the iOS dataset, demonstrating listing layout has direct conversion impact.',
+        link:'See Releases → focus v8.4'
+      },
+      {
+        title:'But those gains are already eroding',
+        body:'iOS Listing→PDP: Feb peak 56.1% → Mar 53.8% → Apr 53.0% → May 48.4%. Roughly -8pp in 3 months. Either the redesign novelty wore off or the listing now feels stale against a larger catalog. A second-iteration card design is overdue.',
+        link:'See Funnels → HP→Listing→PDP (iOS only)'
+      },
+      {
+        title:'Half of listing visitors still drop off',
+        body:'Listing→PDP sits in the 44–56% band across all months and both platforms. That means roughly 1 in 2 users who reach a listing don\'t click any card. That\'s the biggest discoverable inefficiency on the listing surface — filters + better cards should target this directly.',
+        link:'See Funnels → HP→Listing→PDP'
+      },
+      {
+        title:'Android listing redesign was less impactful',
+        body:'Android v0.6.8 (Mar 16) "New library design" was tagged only Medium impact. Android Listing→PDP in May 2026 is 52.7%, only marginally above its mid-2025 baseline. Either the redesign wasn\'t enough or the Android catalog browsing problem is different. A coordinated cross-platform listing program needs different prescriptions per platform.',
+        link:'See Releases (Android dashboard)'
+      },
+      {
+        title:'Wrong-fit selection plausibly limits retention',
+        body:'iOS Apr 2026 cohort LTV: ₹2,464 — well below the ₹3,837 average. M01 user-repeat across recent cohorts is stuck in a 16–18% band. If new users are picking sub-optimal first sessions (because they can\'t tell which is right for them), early disappointment kills repeat purchase. Decision aids (length / difficulty / "best for new users") are the lever.',
+        link:'See Retention → LTV view + Heatmap'
+      },
+      {
+        title:'No filter-usage data today',
+        body:'The dashboard has no metrics on filter clicks, filter combinations, or "no-results" rates. Whatever ships needs telemetry (filter_applied event with the filter set as a property) — otherwise we can only judge filters indirectly through Listing→PDP, which is a blunt instrument.',
+        link:'Build into release scope'
+      }
+    ],
+    impact:[
+      'Primary lever: lift Listing→PDP back above the Feb 2026 peak of 56% — would add ~2–3pp on the funnel\'s most stable step, compounding into all downstream metrics.',
+      'Secondary lever: better card hierarchy / decision aids should lift average ticket size by surfacing the right premium courses to the right user.',
+      'Tertiary lever: improving first-purchase fit should raise M01 user-repeat — currently flat in the 16–18% range. Even a 3pp lift in M01 retention on recent 60-user cohorts is +1.8 returning users/month at zero marginal acquisition cost.'
+    ],
+    risks:[
+      'Filter UX is easy to over-design — too many filters reduces use. Worth instrumenting filter open rate + filter applied rate before adding new dimensions.',
+      'Decision-aid badges ("best for beginners", "intermediate", etc.) require accurate metadata on every course. If metadata is uneven, the badges will look arbitrary and hurt trust.',
+      'A second listing redesign close after v8.4 / v0.6.8 risks redesign fatigue — staff who are still adapting to the last one. Worth pacing iterations with a clear hypothesis per release.',
+      'Listing→PDP erosion may be partly catalog-growth related (more items, same UI surface) rather than UI quality — pure UI rework won\'t help if the catalog needs better curation upstream.'
+    ]
+  },
+  {
     title:'Homepage Personalisation',
     area:'Discovery / HP',
     priority:'high',
