@@ -465,15 +465,22 @@
   }
 
   /* ── features tab ── */
-  .feat-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px; padding: 16px 18px; }
-  .feat-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-  .feat-title { font-size: 15px; font-weight: 500; color: var(--text); }
+  .feat-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
+  .feat-card:hover { background: var(--bg-secondary); }
+  .feat-card.open { cursor: default; padding-bottom: 18px; }
+  .feat-card.open:hover { background: var(--bg); }
+  .feat-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .feat-title { font-size: 15px; font-weight: 500; color: var(--text); flex: 1; }
+  .feat-chevron { color: var(--text-tertiary); font-size: 14px; transition: transform 0.2s; user-select: none; }
+  .feat-card.open .feat-chevron { transform: rotate(90deg); }
   .feat-pill { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 12px; letter-spacing: 0.02em; text-transform: uppercase; }
   .feat-pill.area { background: rgba(55,138,221,0.12); color: #1d6aae; }
   .feat-pill.priority-high { background: rgba(201,71,42,0.12); color: #C9472A; }
   .feat-pill.priority-med { background: rgba(186,117,23,0.14); color: #BA7517; }
   .feat-pill.priority-low { background: rgba(136,135,128,0.16); color: #666; }
-  .feat-summary { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.55; }
+  .feat-summary { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+  .feat-body { display: none; margin-top: 14px; }
+  .feat-card.open .feat-body { display: block; }
   .feat-section-title { font-size: 10px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin: 12px 0 6px; }
   .feat-evidence { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 6px; }
   .feat-evidence-item { background: var(--bg-secondary); border-radius: 8px; padding: 8px 10px; border-left: 2px solid #378ADD; }
@@ -481,9 +488,8 @@
   .feat-evidence-body { font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; }
   .feat-evidence-link { font-size: 10.5px; color: var(--text-tertiary); margin-top: 4px; font-style: italic; }
   .feat-impact { background: rgba(29,158,117,0.08); border-left: 2px solid #1D9E75; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--text); margin-bottom: 6px; }
-  .feat-risks { background: rgba(186,117,23,0.06); border-left: 2px solid #BA7517; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--text-secondary); }
-  .feat-risks ul, .feat-impact ul { margin: 4px 0 0 0; padding-left: 18px; }
-  .feat-risks li, .feat-impact li { margin-bottom: 2px; }
+  .feat-impact ul { margin: 4px 0 0 0; padding-left: 18px; }
+  .feat-impact li { margin-bottom: 2px; }
 
   /* ── funnel viz ── */
   .funnel-summary { background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
@@ -3300,7 +3306,7 @@ const FEATURES=[
 
 function renderFeatures(){
   const wrap=document.getElementById('features-list');
-  wrap.innerHTML=FEATURES.map(f=>{
+  wrap.innerHTML=FEATURES.map((f,idx)=>{
     const priorityClass='priority-'+(f.priority==='high'?'high':f.priority==='medium'?'med':'low');
     const evHtml=f.evidence.map(e=>`<div class="feat-evidence-item">
       <div class="feat-evidence-title">${e.title}</div>
@@ -3308,19 +3314,27 @@ function renderFeatures(){
       ${e.link?`<div class="feat-evidence-link">→ ${e.link}</div>`:''}
     </div>`).join('');
     const impactHtml=f.impact.map(i=>`<li>${i}</li>`).join('');
-    return `<div class="feat-card">
+    return `<div class="feat-card" data-feat="${idx}" onclick="toggleFeature(${idx})">
       <div class="feat-head">
+        <span class="feat-chevron">▶</span>
         <span class="feat-title">${f.title}</span>
         <span class="feat-pill area">${f.area}</span>
         <span class="feat-pill ${priorityClass}">${f.priority}</span>
       </div>
       <div class="feat-summary">${f.summary}</div>
-      <div class="feat-section-title">Data behind it</div>
-      <div class="feat-evidence">${evHtml}</div>
-      <div class="feat-section-title">Expected impact</div>
-      <div class="feat-impact"><ul>${impactHtml}</ul></div>
+      <div class="feat-body" onclick="event.stopPropagation()">
+        <div class="feat-section-title">Data behind it</div>
+        <div class="feat-evidence">${evHtml}</div>
+        <div class="feat-section-title">Expected impact</div>
+        <div class="feat-impact"><ul>${impactHtml}</ul></div>
+      </div>
     </div>`;
   }).join('');
+}
+
+function toggleFeature(idx){
+  const card=document.querySelector(`.feat-card[data-feat="${idx}"]`);
+  if(card)card.classList.toggle('open');
 }
 
 /* ── insights builder ──────────────────────────────────────── */
