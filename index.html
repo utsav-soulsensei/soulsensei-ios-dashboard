@@ -3237,6 +3237,39 @@ function renderRetention(){
 /* ── features tab ──────────────────────────────────────────── */
 const FEATURES=[
   {
+    title:'Complete Login Revamp',
+    area:'Auth / Login',
+    priority:'high',
+    summary:'Rebuild the entire login flow — silent re-auth on app open, biometric / passkey quick login, social sign-in, persistent sessions, and OTP autofill — so that fewer users ever see the OTP + Login screens in the first place.',
+    evidence:[
+      {
+        title:'Auth is the #1 funnel deficit',
+        body:'Across both iOS and Android, Paid PDP logged-in users convert at ~2× the rate of logged-out users (iOS: 5.1% vs 2.6% avg; Android: 5.0% vs 2.7% avg). The single biggest fixable lever in the entire funnel is reducing the share of paid-PDP traffic that arrives logged-out.',
+        link:'See Funnels → toggle Logged-in vs Logged-out'
+      },
+      {
+        title:'OTP → Login is the most fragile step',
+        body:'Android Paid PDP (logged-out) May 2026: OTP→Login fell from 84% (Apr) to 20% (May) — an MoM step-change that drove paid CR from 2.07% to 0.74%. Whether the cause was SMS delivery, bot traffic, or UX, the current flow is too brittle. Removing reliance on OTP for repeat visitors via biometric / passkey insulates against this entire class of failure.',
+        link:'See Funnels → Android Paid PDP focus May 2026'
+      },
+      {
+        title:'JWT refresh fix already proved auth fixes move ROAS',
+        body:'iOS v10.1 (Apr 27) "JWT refresh-token fix" coincides with the iOS ROAS recovery from 1.21× (Apr) to 1.52× (May) and a small lift in logged-in CR (6.0% → 6.5%). A single auth bug-fix moved ROAS by a quarter — a full login revamp is a much bigger lever.',
+        link:'See Releases → focus v10.1'
+      },
+      {
+        title:'Two separate auth steps in the funnel',
+        body:'Logged-out Paid PDP has TWO auth-related steps (Send OTP and Login) that compound. Even with high individual step rates (~80% each), they multiply to ~64% combined — meaning ~36% of cart-reachers are lost to auth friction even in a good month. Collapsing this to a single tap-to-confirm step for returning devices closes most of that gap.',
+        link:'See Funnels → Paid PDP step detail'
+      }
+    ],
+    impact:[
+      'Primary lever: shift X% of paid PDP traffic from logged-out (~2.6% CR) to logged-in (~5.1% CR). Each 20pp shift of users to the logged-in path lifts overall paid CR by ~0.5pp — large given current PDP volumes.',
+      'Secondary lever: insulate paid CR from OTP delivery / SMS-provider issues. Android\'s May 2026 collapse cost ~₹50k+ in lost paid revenue in 21 days — a robust auth flow prevents recurrence.',
+      'Rough size: a successful revamp that doubles the logged-in share of paid PDP traffic would lift overall Paid PDP CR by ~1pp (from ~3% to ~4%) — roughly a 33% relative gain on the entire paid funnel, before any PDP / cart improvements.'
+    ]
+  },
+  {
     title:'PDP & Cart Experiments',
     area:'PDP / Cart',
     priority:'high',
