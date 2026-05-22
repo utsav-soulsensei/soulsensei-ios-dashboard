@@ -698,6 +698,7 @@
     <button class="tab-btn" data-tab="retention" onclick="switchTab('retention')">Retention</button>
     <button class="tab-btn" data-tab="features" onclick="switchTab('features')">Features</button>
     <button class="tab-btn" data-tab="benchmarks" onclick="switchTab('benchmarks')">Benchmarks</button>
+    <button class="tab-btn" data-tab="revcuts" onclick="switchTab('revcuts')">Revenue Cuts</button>
   </nav>
 
   <div id="tab-charts">
@@ -1469,6 +1470,13 @@
     </div>
   </div><!-- /tab-benchmarks -->
 
+  <div id="tab-revcuts" style="display:none">
+    <p class="compare-note">Revenue & purchase cuts — embedded standalone dashboard (Apr 25 – May 26). Open in <a href="revenue_dashboard.html" target="_blank" style="color:#378ADD;text-decoration:none;">a new tab</a> for full-screen view.</p>
+    <div style="border:0.5px solid var(--border);border-radius:10px;overflow:hidden;background:#F7F8FA;">
+      <iframe src="revenue_dashboard.html" style="width:100%;height:2400px;border:0;display:block;" title="Revenue cuts dashboard"></iframe>
+    </div>
+  </div><!-- /tab-revcuts -->
+
   <div class="footer">
     <div class="footer-brand">SoulSensei</div>
     <div class="footer-meta">Android Analytics<span class="footer-meta-sep">·</span>data Oct 2025 – May 2026<span class="footer-meta-sep">·</span>refreshed May 22, 2026</div>
@@ -1939,7 +1947,7 @@ function applyRange(){render();}
 
 /* ── tab switching ─────────────────────────────────────────── */
 function _doSwitchTab(tab){
-  ['charts','insights','report','compare','funnels','releases','retention','features','benchmarks'].forEach(t=>
+  ['charts','insights','report','compare','funnels','releases','retention','features','benchmarks','revcuts'].forEach(t=>
     document.getElementById('tab-'+t).style.display=tab===t?'':'none'
   );
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
