@@ -1161,13 +1161,28 @@
         <option value="14" selected>±14 days</option>
         <option value="30">±30 days</option>
       </select>
-      <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">Impact filter:</label>
+      <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">Impact tag:</label>
       <div id="rel-impact-filter" style="display:inline-flex;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;">
         <button data-imp="all" onclick="setReleaseImpactFilter('all')" style="padding:5px 10px;border:0;background:var(--bg-secondary);color:var(--text);font-size:11px;cursor:pointer;">All</button>
         <button data-imp="High" onclick="setReleaseImpactFilter('High')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">High</button>
         <button data-imp="Medium" onclick="setReleaseImpactFilter('Medium')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">Medium</button>
         <button data-imp="Low" onclick="setReleaseImpactFilter('Low')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">Low</button>
       </div>
+      <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">Δ direction:</label>
+      <div id="rel-dir-filter" style="display:inline-flex;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;">
+        <button data-dir="all" onclick="setReleaseDirFilter('all')" style="padding:5px 10px;border:0;background:var(--bg-secondary);color:var(--text);font-size:11px;cursor:pointer;">All</button>
+        <button data-dir="positive" onclick="setReleaseDirFilter('positive')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">↑ Positive</button>
+        <button data-dir="negative" onclick="setReleaseDirFilter('negative')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">↓ Negative</button>
+        <button data-dir="neutral" onclick="setReleaseDirFilter('neutral')" style="padding:5px 10px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:11px;cursor:pointer;">· Neutral</button>
+      </div>
+      <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">Sort:</label>
+      <select id="rel-sort" onchange="renderReleases()" style="padding:6px 10px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:12px;">
+        <option value="date_desc">Date (newest first)</option>
+        <option value="date_asc">Date (oldest first)</option>
+        <option value="delta_abs_desc">|Δ| biggest first</option>
+        <option value="delta_desc">Δ most positive first</option>
+        <option value="delta_asc">Δ most negative first</option>
+      </select>
     </div>
 
     <div class="chart-card">
@@ -2484,12 +2499,24 @@ const RELEASE_METRICS={
 };
 
 let releaseImpactFilter='all';
+let releaseDirFilter='all';
 let releaseFocusIdx=null;
+const NEUTRAL_DELTA_PP=5;
 
 function setReleaseImpactFilter(imp){
   releaseImpactFilter=imp;
   document.querySelectorAll('#rel-impact-filter button').forEach(b=>{
     const active=b.dataset.imp===imp;
+    b.style.background=active?'var(--bg-secondary)':'var(--bg)';
+    b.style.color=active?'var(--text)':'var(--text-secondary)';
+  });
+  renderReleases();
+}
+
+function setReleaseDirFilter(dir){
+  releaseDirFilter=dir;
+  document.querySelectorAll('#rel-dir-filter button').forEach(b=>{
+    const active=b.dataset.dir===dir;
     b.style.background=active?'var(--bg-secondary)':'var(--bg)';
     b.style.color=active?'var(--text)':'var(--text-secondary)';
   });
@@ -2640,16 +2667,42 @@ function renderReleases(){
     scroller.dataset.scrolled='1';
   }
 
+  const sortBy=document.getElementById('rel-sort')?.value||'date_desc';
+  let rows=RELEASES.map((r,i)=>({
+    rel:r,
+    origIdx:i,
+    stats:computeWindowStats(series,parseDailyDate(r.date),windowDays)
+  }));
+  if(releaseImpactFilter!=='all') rows=rows.filter(x=>x.rel.impact===releaseImpactFilter);
+  if(releaseDirFilter!=='all'){
+    rows=rows.filter(x=>{
+      const d=x.stats.delta;
+      if(d==null) return releaseDirFilter==='neutral';
+      const absD=Math.abs(d);
+      if(releaseDirFilter==='positive') return d>=NEUTRAL_DELTA_PP;
+      if(releaseDirFilter==='negative') return d<=-NEUTRAL_DELTA_PP;
+      if(releaseDirFilter==='neutral') return absD<NEUTRAL_DELTA_PP;
+      return true;
+    });
+  }
+  const dateOf=x=>parseDailyDate(x.rel.date).getTime();
+  if(sortBy==='date_desc') rows.sort((a,b)=>dateOf(b)-dateOf(a));
+  else if(sortBy==='date_asc') rows.sort((a,b)=>dateOf(a)-dateOf(b));
+  else if(sortBy==='delta_abs_desc') rows.sort((a,b)=>(Math.abs(b.stats.delta??-Infinity))-(Math.abs(a.stats.delta??-Infinity)));
+  else if(sortBy==='delta_desc') rows.sort((a,b)=>(b.stats.delta??-Infinity)-(a.stats.delta??-Infinity));
+  else if(sortBy==='delta_asc') rows.sort((a,b)=>(a.stats.delta??Infinity)-(b.stats.delta??Infinity));
+
   const tb=document.getElementById('rel-tbody');
-  tb.innerHTML=[...RELEASES].reverse().map((r,reverseIdx)=>{
-    const origIdx=RELEASES.length-1-reverseIdx;
-    if(releaseImpactFilter!=='all'&&r.impact!==releaseImpactFilter)return '';
-    const stats=computeWindowStats(series,parseDailyDate(r.date),windowDays);
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-tertiary);">No releases match the current filters.</td></tr>';
+    return;
+  }
+  tb.innerHTML=rows.map(({rel:r,origIdx,stats})=>{
     const fmt=v=>v==null?'—':metric.fmt(v);
     const deltaStr=stats.delta==null?'—':
       (stats.delta>=0?'+':'')+stats.delta.toFixed(1)+'%';
     const deltaColor=stats.delta==null?'var(--text-tertiary)':
-      Math.abs(stats.delta)<5?'var(--text-tertiary)':
+      Math.abs(stats.delta)<NEUTRAL_DELTA_PP?'var(--text-tertiary)':
       stats.delta>0?'#1D9E75':'#D85A30';
     const impColor=RELEASE_IMPACT_COLOR[r.impact];
     const sel=releaseFocusIdx===origIdx?'background:var(--bg-secondary);':'';
