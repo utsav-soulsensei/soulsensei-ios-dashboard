@@ -3182,6 +3182,39 @@ function renderRetention(){
 /* ── features tab ──────────────────────────────────────────── */
 const FEATURES=[
   {
+    title:'PDP & Cart Experiments',
+    area:'PDP / Cart',
+    priority:'high',
+    summary:'Run a series of design experiments on the PDP (hero video, social proof, urgency, pricing layout) and cart (one-tap pay, persistent cart, exit-intent recovery) to lift the two biggest leaks in the paid funnel — PV→Register click and Cart→Send OTP.',
+    evidence:[
+      {
+        title:'PV→Register is the single biggest paid-funnel leak',
+        body:'Android Paid PDP (logged-out) May 2026: 33.5% of PDP viewers click Register — high relative to iOS (16%), but the next steps cratered (OTP→Login 20%). Apr was 14% Register-click. Volatility here drives most of the variance in overall paid CR. Stronger PDP signalling (clear value, social proof) directly targets this.',
+        link:'See Funnels → Paid PDP → Purchase'
+      },
+      {
+        title:'Cart→Send OTP is the second-biggest leak',
+        body:'Android Paid PDP (logged-out) May 2026: only 48% of cart visitors hit Send OTP — i.e. half the cart-reachers don\'t even try to pay. Recent months: Apr 33%, Mar 50%, Feb 50%. Cart experiments (clearer pricing summary, removing distractions, one-tap pay, OTP autofill) could materially close the gap.',
+        link:'See Funnels → Paid PDP → Purchase'
+      },
+      {
+        title:'Past Cart releases moved metrics',
+        body:'Android cart-touching releases tagged High impact: v0.0.3 (Apr 15, 2025) New cart system + Razorpay; v0.5.0 (Jan 8) Listing redesign + bottom nav. Plus Medium-tagged v0.4.2 cart-related fixes and v0.7.3 cart UI change. Each is followed by a discernible step-rate shift in the funnel — proven lever.',
+        link:'See Releases → focus High impact'
+      },
+      {
+        title:'Logged-in funnel shows the conversion ceiling',
+        body:'Android Paid PDP logged-in May 2026: 3.3% overall CR vs 0.7% logged-out (a 4.5× gap, widening sharply due to May\'s OTP collapse). Cart→Proceed Payment in logged-in: 52%. The cart UX itself works for authed users — the leak is the cluttered logged-out flow. PDP/cart design changes should be tested specifically on the logged-out path.',
+        link:'See Funnels → toggle Logged-in vs Logged-out'
+      }
+    ],
+    impact:[
+      'Primary lever: stabilise PV→Register click on Paid PDP into a steady 18–22% band (vs current swings between 14% and 34%) → reduces month-to-month volatility and creates a predictable top-of-funnel.',
+      'Secondary lever: lift Cart→Send OTP from ~33–48% to 60%+ → roughly +30–80% relative on the deepest funnel step, with the biggest absolute impact since cart-reachers are the most-engaged segment.',
+      'Rough size: combined, stabilised Register-click plus a 15pp lift on Cart→OTP could lift overall Paid PDP CR from ~1% (May 2026) back to 2.5%+ — fully recovering the May collapse without changing acquisition.'
+    ]
+  },
+  {
     title:'Listing Page — Card redesign · Filters · Decision aids',
     area:'Listing / Discovery',
     priority:'high',
