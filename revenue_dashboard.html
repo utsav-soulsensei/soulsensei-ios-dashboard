@@ -3,735 +3,766 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Revenue & Purchase Dashboard · Apr 25 – May 26</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<title>Revenue & Purchase Analytics — Executive Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Outfit',sans-serif;background:#F7F8FA;color:#111827;font-size:14px}
-.page{max-width:1320px;margin:0 auto;padding:36px 32px 60px}
-
-/* ── HEADER ── */
-.hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #E5E7EB}
-.hdr-left h1{font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#0F172A}
-.hdr-left p{font-size:12px;color:#6B7280;margin-top:3px;font-weight:400}
-.hdr-badge{background:#EFF6FF;color:#1D4ED8;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid #BFDBFE}
-
-/* ── KPI STRIP ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:40px}
-.kpi{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:18px 16px;position:relative;overflow:hidden}
-.kpi::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent,#E5E7EB)}
-.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:#9CA3AF}
-.kpi-val{font-size:24px;font-weight:800;letter-spacing:-0.5px;color:#0F172A;margin:6px 0 2px}
-.kpi-sub{font-size:11px;color:#6B7280}
-.kpi-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:6px}
-.tag-g{background:#DCFCE7;color:#15803D}
-.tag-b{background:#FEF9C3;color:#854D0E}
-
-/* ── SECTION ── */
-.sec{margin-bottom:52px}
-.sec-hdr{margin-bottom:20px}
-.sec-hdr .sec-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#9CA3AF}
-.sec-hdr h2{font-size:17px;font-weight:800;letter-spacing:-0.3px;color:#0F172A;margin-top:2px}
-.sec-hdr p{font-size:12px;color:#6B7280;margin-top:3px}
-.sec-rule{width:36px;height:3px;border-radius:2px;background:#1D4ED8;margin-top:8px}
-
-/* ── CHART CARDS ── */
-.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px}
-.card{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:22px}
-.card-title{font-size:12px;font-weight:700;color:#374151}
-.card-sub{font-size:11px;color:#9CA3AF;margin-top:2px;margin-bottom:16px}
-.scroll-wrap{overflow-x:auto}
-.chart-inner{position:relative}
-
-/* ── INSIGHTS ── */
-.insight-box{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:16px 20px}
-.insight-box .i-head{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#0369A1;margin-bottom:12px}
-.i-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.i-item .i-n{font-size:11px;font-weight:800;color:#2563EB}
-.i-item .i-t{font-size:12px;color:#1E40AF;line-height:1.45;margin-top:3px;font-weight:400}
-
-/* ── FILTER BAR ── */
-.filter-wrap{display:flex;align-items:center;gap:8px;margin-bottom:22px;flex-wrap:wrap}
-.filter-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#6B7280;white-space:nowrap}
-.fbtn{padding:6px 18px;border-radius:20px;border:1px solid #E5E7EB;background:#fff;font-size:12px;font-weight:500;color:#374151;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
-.fbtn:hover{border-color:#2563EB;color:#2563EB}
-.fbtn.active{background:#1D4ED8;border-color:#1D4ED8;color:#fff}
-.filter-tag{color:#1D4ED8;font-weight:600;font-size:12px}
-
-/* ── MATRIX ── */
-.matrix-wrap{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:22px}
-.matrix-title{font-size:12px;font-weight:700;color:#374151;margin-bottom:16px}
-.mx-table{width:100%;border-collapse:collapse}
-.mx-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#6B7280;padding:8px 12px;text-align:center;border-bottom:2px solid #F3F4F6}
-.mx-table th:first-child{text-align:left;padding-left:0}
-.mx-table td{padding:12px;border:1px solid #F9FAFB;vertical-align:middle}
-.mx-table td:first-child{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#6B7280;padding-left:0;white-space:nowrap}
-.cell-v{font-size:18px;font-weight:800;letter-spacing:-0.5px;color:#0F172A}
-.cell-s{font-size:10px;color:#9CA3AF;margin-top:2px}
-.cell-bar-bg{height:3px;border-radius:2px;background:#F3F4F6;margin-top:8px}
-.cell-bar-fg{height:3px;border-radius:2px}
-
-/* ── LEGEND ── */
-.legend-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
-.lg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#6B7280}
-.lg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.lg-line{width:18px;height:2px;flex-shrink:0}
-
-@media(max-width:900px){
-  .kpi-grid{grid-template-columns:repeat(3,1fr)}
-  .pair{grid-template-columns:1fr}
-}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F7FA;color:#1E293B;font-size:14px}
+.header{background:#fff;border-bottom:1px solid #E2E8F0;padding:24px 40px}
+.header h1{font-size:20px;font-weight:700;color:#0F172A}
+.header p{color:#64748B;font-size:12px;margin-top:4px}
+.kpi-row{display:flex;gap:14px;padding:20px 40px;background:#fff;border-bottom:1px solid #E2E8F0;flex-wrap:wrap}
+.kpi{flex:1;min-width:130px;padding:14px 16px;background:#F8FAFC;border-radius:8px;border-left:3px solid #3B82F6}
+.kpi .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#64748B;font-weight:600}
+.kpi .val{font-size:20px;font-weight:700;color:#0F172A;margin-top:3px}
+.kpi .sub{font-size:11px;color:#94A3B8;margin-top:1px}
+.content{padding:24px 40px}
+.section{margin-bottom:36px}
+.section-title{font-size:14px;font-weight:700;color:#0F172A;margin-bottom:2px}
+.section-sub{font-size:11px;color:#94A3B8;margin-bottom:14px}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:#fff;border-radius:10px;padding:18px;border:1px solid #E2E8F0}
+.card-title{font-size:12px;font-weight:700;color:#0F172A;margin-bottom:1px}
+.card-sub{font-size:11px;color:#94A3B8;margin-bottom:10px}
+.chart-wrap{position:relative}
+.insights{margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9}
+.ins-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#CBD5E1;margin-bottom:6px}
+.ins{display:flex;gap:6px;margin-bottom:4px}
+.dot{width:5px;height:5px;border-radius:50%;background:#3B82F6;margin-top:4px;flex-shrink:0}
+.ins p{font-size:11px;color:#475569;line-height:1.4}
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.filter-row span{font-size:11px;font-weight:600;color:#64748B}
+.fbtn{padding:4px 12px;border-radius:20px;border:1px solid #E2E8F0;background:#fff;font-size:11px;cursor:pointer;color:#64748B;font-family:inherit;transition:all .15s}
+.fbtn:hover{border-color:#3B82F6;color:#3B82F6}
+.fbtn.active{background:#3B82F6;color:#fff;border-color:#3B82F6}
+.matrix-wrap{background:#fff;border-radius:10px;padding:20px;border:1px solid #E2E8F0}
+.matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:12px}
+table.mx{width:100%;border-collapse:collapse;font-size:12px}
+table.mx th{padding:8px 10px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#94A3B8;font-weight:700;border-bottom:2px solid #E2E8F0}
+table.mx th.rh{text-align:left}
+table.mx td{padding:10px;text-align:center;border-bottom:1px solid #F8FAFC}
+table.mx td.rl{text-align:left;font-weight:700;font-size:12px;color:#0F172A}
+.cv{font-size:12px;font-weight:700}
+.cs{font-size:10px;color:#64748B;margin-top:1px}
 </style>
 </head>
 <body>
-<div class="page">
 
-<!-- HEADER -->
-<div class="hdr">
-  <div class="hdr-left">
-    <h1>Revenue &amp; Purchase Intelligence</h1>
-    <p>Executive Dashboard · Apr 2025 — May 2026 · All Platforms &amp; Sessions</p>
-  </div>
-  <div class="hdr-badge">Confidential · Internal Use</div>
+<div class="header">
+  <h1>Revenue &amp; Purchase Analytics</h1>
+  <p>Executive Dashboard &nbsp;·&nbsp; Apr 2025 – May 2026 &nbsp;·&nbsp; All amounts in ₹</p>
 </div>
 
-<!-- KPI STRIP -->
-<div class="kpi-grid" id="kpiStrip"></div>
+<div class="kpi-row">
+  <div class="kpi"><div class="lbl">Total Revenue</div><div class="val">₹5.75 Cr</div><div class="sub">Apr 25 – May 26</div></div>
+  <div class="kpi" style="border-color:#10B981"><div class="lbl">Peak Month</div><div class="val">₹61.2 L</div><div class="sub">Apr 2026</div></div>
+  <div class="kpi" style="border-color:#F59E0B"><div class="lbl">Total Purchases</div><div class="val">30,549</div><div class="sub">Apr 25 – May 26</div></div>
+  <div class="kpi" style="border-color:#8B5CF6"><div class="lbl">Repeat Revenue</div><div class="val">53.4%</div><div class="sub">May 26 · was 28.7% Apr 25</div></div>
+  <div class="kpi" style="border-color:#EF4444"><div class="lbl">Avg Rev / Purchase</div><div class="val">₹1,883</div><div class="sub">Cumulative</div></div>
+  <div class="kpi" style="border-color:#06B6D4"><div class="lbl">Revenue Growth YoY</div><div class="val">+188%</div><div class="sub">Apr 25 → Apr 26</div></div>
+</div>
 
-<!-- ════════════════════════════════════════════
-     SECTION 1 — TOTAL NEW vs REPEAT
-════════════════════════════════════════════ -->
-<div class="sec">
-  <div class="sec-hdr">
-    <div class="sec-num">Section 01</div>
-    <h2>Total Revenue &amp; Purchases — New vs Repeat</h2>
-    <p>Monthly stacked bars split by acquisition type · Total trend line overlay</p>
-    <div class="sec-rule"></div>
-  </div>
-  <div class="pair">
+<div class="content">
+
+<!-- S1 -->
+<div class="section">
+  <div class="section-title">1 · Total Overview — New vs Repeat</div>
+  <div class="section-sub">Monthly revenue and purchase volume split between new and repeat customers</div>
+  <div class="chart-row">
     <div class="card">
-      <div class="card-title">Revenue · New vs Repeat</div>
-      <div class="card-sub">Stacked bars · Total trend line · % labels inside bars</div>
-      <div class="legend-row">
-        <div class="lg-item"><div class="lg-dot" style="background:#1D4ED8"></div>New Revenue</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#93C5FD"></div>Repeat Revenue</div>
-        <div class="lg-item"><div class="lg-line" style="background:#1E293B"></div>Total</div>
+      <div class="card-title">Revenue — New vs Repeat</div>
+      <div class="card-sub">Stacked bars; line = total</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="c1r"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot"></div><p>Repeat crossed 50% in Dec 25; base maturing fast.</p></div>
+        <div class="ins"><div class="dot"></div><p>Revenue grew 4.3× from Apr 25 to Apr 26.</p></div>
+        <div class="ins"><div class="dot"></div><p>New revenue share declining consistently each month.</p></div>
       </div>
-      <div class="chart-inner"><canvas id="c1r" height="220"></canvas></div>
     </div>
     <div class="card">
-      <div class="card-title">Purchases · New vs Repeat</div>
-      <div class="card-sub">Stacked bars · Total trend line · % labels inside bars</div>
-      <div class="legend-row">
-        <div class="lg-item"><div class="lg-dot" style="background:#1D4ED8"></div>New</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#93C5FD"></div>Repeat</div>
-        <div class="lg-item"><div class="lg-line" style="background:#1E293B"></div>Total</div>
+      <div class="card-title">Purchases — New vs Repeat</div>
+      <div class="card-sub">Stacked bars; line = total</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="c1p"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot"></div><p>Repeat purchases grew from 18% to 43% steadily.</p></div>
+        <div class="ins"><div class="dot"></div><p>Peak purchases Apr 26 at 2,940 units.</p></div>
+        <div class="ins"><div class="dot"></div><p>New purchase share drops every quarter; loyalty improving.</p></div>
       </div>
-      <div class="chart-inner"><canvas id="c1p" height="220"></canvas></div>
-    </div>
-  </div>
-  <div class="insight-box">
-    <div class="i-head">Key Insights</div>
-    <div class="i-row">
-      <div class="i-item"><div class="i-n">01</div><div class="i-t">Repeat share grew steadily from 29% to 53%</div></div>
-      <div class="i-item"><div class="i-n">02</div><div class="i-t">Revenue 4× in 13 months; Apr 26 peak at ₹6.1M</div></div>
-      <div class="i-item"><div class="i-n">03</div><div class="i-t">New % declining — business maturing toward retention</div></div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
-     SECTION 2 — PLATFORM BREAKDOWN
-════════════════════════════════════════════ -->
-<div class="sec">
-  <div class="sec-hdr">
-    <div class="sec-num">Section 02</div>
-    <h2>Platform Breakdown — Web · iOS · Android</h2>
-    <p>Revenue &amp; purchases by platform with share % inside bars</p>
-    <div class="sec-rule"></div>
-  </div>
-  <div class="pair">
+<!-- S2 -->
+<div class="section">
+  <div class="section-title">2 · Platform Breakdown — Web · iOS · Android</div>
+  <div class="section-sub">Monthly revenue and purchases by platform with total trend line</div>
+  <div class="chart-row">
     <div class="card">
       <div class="card-title">Revenue by Platform</div>
-      <div class="card-sub">Stacked: Web · iOS · Android · Total line</div>
-      <div class="legend-row">
-        <div class="lg-item"><div class="lg-dot" style="background:#1E3A8A"></div>Web</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#6D28D9"></div>iOS</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#065F46"></div>Android</div>
+      <div class="card-sub">Stacked bars; line = total</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="c2r"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot"></div><p>Web contributes 76%+ but share declining monthly.</p></div>
+        <div class="ins"><div class="dot"></div><p>iOS revenue grew 18× — fastest growing platform.</p></div>
+        <div class="ins"><div class="dot"></div><p>Android steady growth; now 9% of total revenue.</p></div>
       </div>
-      <div class="chart-inner"><canvas id="c2r" height="220"></canvas></div>
     </div>
     <div class="card">
       <div class="card-title">Purchases by Platform</div>
-      <div class="card-sub">Stacked: Web · iOS · Android · Total line</div>
-      <div class="legend-row">
-        <div class="lg-item"><div class="lg-dot" style="background:#1E3A8A"></div>Web</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#6D28D9"></div>iOS</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#065F46"></div>Android</div>
+      <div class="card-sub">Stacked bars; line = total</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="c2p"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot"></div><p>Web dominates at 82–95% of all purchases.</p></div>
+        <div class="ins"><div class="dot"></div><p>iOS purchases grew 9× over 14 months.</p></div>
+        <div class="ins"><div class="dot"></div><p>Mobile (iOS+Android) now 15% of all purchases.</p></div>
       </div>
-      <div class="chart-inner"><canvas id="c2p" height="220"></canvas></div>
-    </div>
-  </div>
-  <div class="insight-box">
-    <div class="i-head">Key Insights</div>
-    <div class="i-row">
-      <div class="i-item"><div class="i-n">01</div><div class="i-t">Web drives ~83% revenue; highly platform-concentrated</div></div>
-      <div class="i-item"><div class="i-n">02</div><div class="i-t">App (iOS+Android) share surged from 4% to 23%</div></div>
-      <div class="i-item"><div class="i-n">03</div><div class="i-t">Android grew 69× in revenue from Apr 25 to Apr 26</div></div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
-     SECTION 3 — MONTHLY PLATFORM COMPARISON
-════════════════════════════════════════════ -->
-<div class="sec">
-  <div class="sec-hdr">
-    <div class="sec-num">Section 03</div>
-    <h2>Monthly Platform Comparison — New &amp; Repeat Split</h2>
-    <p>3 grouped bars per month (Web · iOS · Android) stacked by acquisition type · Platform trendlines</p>
-    <div class="sec-rule"></div>
-  </div>
-  <div class="pair">
+<!-- S3 -->
+<div class="section">
+  <div class="section-title">3 · Platform Monthly — New vs Repeat Trends</div>
+  <div class="section-sub">Grouped bars per month for each platform; repeat % trendlines</div>
+  <div class="chart-row">
     <div class="card">
-      <div class="card-title">Revenue — Platform Monthly Breakdown</div>
-      <div class="card-sub">Grouped stacked bars · Trendlines per platform</div>
-      <div class="scroll-wrap"><div class="chart-inner" style="min-width:900px"><canvas id="c3r" height="260"></canvas></div></div>
+      <div class="card-title">Revenue — Platform Repeat % Trends</div>
+      <div class="card-sub">New (light) + Repeat (dark) per platform; trendlines</div>
+      <div class="chart-wrap" style="height:270px"><canvas id="c3r"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot"></div><p>Web repeat grew 27% → 45%; strong base maturing.</p></div>
+        <div class="ins"><div class="dot"></div><p>iOS repeat surged to 65% by Feb 26; high retention.</p></div>
+        <div class="ins"><div class="dot"></div><p>Android repeat volatile; small volume skews %. </p></div>
+      </div>
     </div>
     <div class="card">
-      <div class="card-title">Purchases — Platform Monthly Breakdown</div>
-      <div class="card-sub">Grouped stacked bars · Trendlines per platform</div>
-      <div class="scroll-wrap"><div class="chart-inner" style="min-width:900px"><canvas id="c3p" height="260"></canvas></div></div>
-    </div>
-  </div>
-  <div class="insight-box">
-    <div class="i-head">Key Insights</div>
-    <div class="i-row">
-      <div class="i-item"><div class="i-n">01</div><div class="i-t">Web new% fell 18pp — repeat loyalty steadily building</div></div>
-      <div class="i-item"><div class="i-n">02</div><div class="i-t">iOS repeat % crossed 50% by Dec 25; early maturity</div></div>
-      <div class="i-item"><div class="i-n">03</div><div class="i-t">Android shifted from all-new to ~50-50 repeat split</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════
-     PLATFORM FILTER → SECTIONS 4 & 5
-════════════════════════════════════════════ -->
-<div class="sec">
-  <div class="sec-hdr">
-    <div class="sec-num">Sections 04 &amp; 05 · Dynamic</div>
-    <h2>Session Performance — Group · Offline · 1on1</h2>
-    <p>Filter by platform to update both charts below</p>
-    <div class="sec-rule"></div>
-  </div>
-
-  <div class="filter-wrap">
-    <span class="filter-lbl">Platform:</span>
-    <button class="fbtn active" data-p="total" onclick="applyFilter(this)">Total</button>
-    <button class="fbtn" data-p="web" onclick="applyFilter(this)">Web</button>
-    <button class="fbtn" data-p="app" onclick="applyFilter(this)">App (iOS + Android)</button>
-    <button class="fbtn" data-p="ios" onclick="applyFilter(this)">iOS</button>
-    <button class="fbtn" data-p="android" onclick="applyFilter(this)">Android</button>
-  </div>
-
-  <!-- Section 4 -->
-  <div style="margin-bottom:36px">
-    <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:2px">
-      04 · Session Overview
-      <span id="plbl4" class="filter-tag">(All Platforms)</span>
-    </div>
-    <div style="font-size:11px;color:#9CA3AF;margin-bottom:16px">Group · Offline · 1on1 share with total line</div>
-    <div class="pair">
-      <div class="card">
-        <div class="card-title">Revenue by Session Type</div>
-        <div class="card-sub">Stacked: Group · Offline · 1on1 · Total line</div>
-        <div class="legend-row">
-          <div class="lg-item"><div class="lg-dot" style="background:#991B1B"></div>Group</div>
-          <div class="lg-item"><div class="lg-dot" style="background:#92400E"></div>Offline</div>
-          <div class="lg-item"><div class="lg-dot" style="background:#0C4A6E"></div>1on1</div>
-        </div>
-        <div class="chart-inner"><canvas id="c4r" height="220"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Purchases by Session Type</div>
-        <div class="card-sub">Stacked: Group · Offline · 1on1 · Total line</div>
-        <div class="legend-row">
-          <div class="lg-item"><div class="lg-dot" style="background:#991B1B"></div>Group</div>
-          <div class="lg-item"><div class="lg-dot" style="background:#92400E"></div>Offline</div>
-          <div class="lg-item"><div class="lg-dot" style="background:#0C4A6E"></div>1on1</div>
-        </div>
-        <div class="chart-inner"><canvas id="c4p" height="220"></canvas></div>
-      </div>
-    </div>
-    <div class="insight-box">
-      <div class="i-head">Key Insights</div>
-      <div class="i-row">
-        <div class="i-item"><div class="i-n">01</div><div class="i-t">Group dominance fading; 1on1 now 33-39% of revenue</div></div>
-        <div class="i-item"><div class="i-n">02</div><div class="i-t">Offline almost entirely new customers; pure acquisition</div></div>
-        <div class="i-item"><div class="i-n">03</div><div class="i-t">1on1 fastest-growing; repeat rising month-on-month</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 5 -->
-  <div>
-    <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:2px">
-      05 · Monthly Session Comparison
-      <span id="plbl5" class="filter-tag">(All Platforms)</span>
-    </div>
-    <div style="font-size:11px;color:#9CA3AF;margin-bottom:16px">3 grouped bars per month (Group · Offline · 1on1) split by new/repeat · Session trendlines</div>
-    <div class="pair">
-      <div class="card">
-        <div class="card-title">Revenue — Session Monthly Breakdown</div>
-        <div class="card-sub">Grouped stacked bars · Trendlines per session</div>
-        <div class="scroll-wrap"><div class="chart-inner" style="min-width:900px"><canvas id="c5r" height="260"></canvas></div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Purchases — Session Monthly Breakdown</div>
-        <div class="card-sub">Grouped stacked bars · Trendlines per session</div>
-        <div class="scroll-wrap"><div class="chart-inner" style="min-width:900px"><canvas id="c5p" height="260"></canvas></div></div>
-      </div>
-    </div>
-    <div class="insight-box">
-      <div class="i-head">Key Insights</div>
-      <div class="i-row">
-        <div class="i-item"><div class="i-n">01</div><div class="i-t">Group new% fell from 71% to 45%; loyal base maturing</div></div>
-        <div class="i-item"><div class="i-n">02</div><div class="i-t">Offline consistently >80% new customers each month</div></div>
-        <div class="i-item"><div class="i-n">03</div><div class="i-t">1on1 repeat grew from 0% to 32%; strong loyalty signal</div></div>
+      <div class="card-title">Purchases — Platform Repeat % Trends</div>
+      <div class="card-sub">New (light) + Repeat (dark) per platform; trendlines</div>
+      <div class="chart-wrap" style="height:270px"><canvas id="c3p"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot"></div><p>Web repeat purchase rate grew 18% → 37%.</p></div>
+        <div class="ins"><div class="dot"></div><p>iOS repeat doubled; 3% → 45% in 14 months.</p></div>
+        <div class="ins"><div class="dot"></div><p>Android mostly new; retention still building.</p></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
-     SECTION 7 — 3×3 MATRIX
-════════════════════════════════════════════ -->
-<div class="sec">
-  <div class="sec-hdr">
-    <div class="sec-num">Section 07</div>
-    <h2>Platform × Session Matrix — Cumulative Apr 25 – May 26</h2>
-    <p>Revenue (absolute + share) and Repeat % for each platform × session cell</p>
-    <div class="sec-rule"></div>
+<!-- S4+5+6 -->
+<div class="section">
+  <div class="section-title">4–6 · Session Analysis — Group · Offline · 1-on-1</div>
+  <div class="section-sub">Select platform to filter all session charts below</div>
+  <div class="filter-row">
+    <span>Platform:</span>
+    <button class="fbtn active" onclick="setFilter('total',this)">Total</button>
+    <button class="fbtn" onclick="setFilter('web',this)">Web</button>
+    <button class="fbtn" onclick="setFilter('app',this)">App (iOS+Android)</button>
+    <button class="fbtn" onclick="setFilter('ios',this)">iOS</button>
+    <button class="fbtn" onclick="setFilter('android',this)">Android</button>
   </div>
-  <div class="pair">
-    <div class="matrix-wrap">
-      <div class="matrix-title">Revenue Matrix</div>
-      <table class="mx-table" id="mxRev"></table>
+  <div class="chart-row" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-title">Revenue by Session Type</div>
+      <div class="card-sub">Stacked bars; line = total</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="c4r"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot" style="background:#10B981"></div><p>Group was 100% in Apr 25; now 41% in May 26.</p></div>
+        <div class="ins"><div class="dot" style="background:#3B82F6"></div><p>1-on-1 grew 0 → ₹13.7L; fastest growing session.</p></div>
+        <div class="ins"><div class="dot" style="background:#EF4444"></div><p>Offline launched Jun 25; now ₹10.3L monthly.</p></div>
+      </div>
     </div>
-    <div class="matrix-wrap">
-      <div class="matrix-title">Repeat % Matrix — Heatmap</div>
-      <table class="mx-table" id="mxRpt"></table>
+    <div class="card">
+      <div class="card-title">Purchases by Session Type</div>
+      <div class="card-sub">Stacked bars; line = total</div>
+      <div class="chart-wrap" style="height:230px"><canvas id="c4p"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot" style="background:#10B981"></div><p>Group purchase share fell from 99% to 70%.</p></div>
+        <div class="ins"><div class="dot" style="background:#3B82F6"></div><p>1-on-1 growing to 18% of all purchases.</p></div>
+        <div class="ins"><div class="dot" style="background:#EF4444"></div><p>Offline small but consistent at 14% of purchases.</p></div>
+      </div>
     </div>
   </div>
-  <div class="insight-box" style="margin-top:16px">
-    <div class="i-head">Key Insights</div>
-    <div class="i-row">
-      <div class="i-item"><div class="i-n">01</div><div class="i-t">Group × Web backbone drives ~47% of all revenue</div></div>
-      <div class="i-item"><div class="i-n">02</div><div class="i-t">Offline is highest new% cell — pure acquisition engine</div></div>
-      <div class="i-item"><div class="i-n">03</div><div class="i-t">1on1 × Android shows highest repeat % across all cells</div></div>
+  <div class="chart-row">
+    <div class="card">
+      <div class="card-title">Revenue — Session Repeat % Trends</div>
+      <div class="card-sub">Grouped bars per month; repeat % trendlines per session</div>
+      <div class="chart-wrap" style="height:270px"><canvas id="c5r"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot" style="background:#10B981"></div><p>Group has best repeat at 55%; mature audience.</p></div>
+        <div class="ins"><div class="dot" style="background:#3B82F6"></div><p>1-on-1 repeat growing from 0 to 31%; healthy.</p></div>
+        <div class="ins"><div class="dot" style="background:#EF4444"></div><p>Offline still mostly new; repeat below 17%.</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Purchases — Session Repeat % Trends</div>
+      <div class="card-sub">Grouped bars per month; repeat % trendlines per session</div>
+      <div class="chart-wrap" style="height:270px"><canvas id="c5p"></canvas></div>
+      <div class="insights"><div class="ins-hdr">Insights</div>
+        <div class="ins"><div class="dot" style="background:#10B981"></div><p>Group shows strongest loyalty; repeat at 44%.</p></div>
+        <div class="ins"><div class="dot" style="background:#3B82F6"></div><p>1-on-1 repeat purchases growing to 23%.</p></div>
+        <div class="ins"><div class="dot" style="background:#EF4444"></div><p>Offline repeat minimal; acquisition-driven model.</p></div>
+      </div>
     </div>
   </div>
 </div>
 
-</div><!-- end .page -->
+<!-- S7 -->
+<div class="section">
+  <div class="section-title">7 · Platform × Session Matrix</div>
+  <div class="section-sub">Cumulative Apr 2025 – May 2026 · Revenue and Repeat % by platform and session type</div>
+  <div class="matrix-wrap">
+    <div class="matrix-grid">
+      <div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:#0F172A">Revenue by Platform × Session</div>
+        <table class="mx" id="mx-rev"></table>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:#0F172A">Repeat Revenue % by Platform × Session</div>
+        <table class="mx" id="mx-rep"></table>
+      </div>
+    </div>
+    <div class="insights" style="margin-top:16px;padding-top:12px">
+      <div class="ins-hdr">Insights</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div class="ins"><div class="dot"></div><p>Web×Group is largest cell; 27% of total cumulative revenue.</p></div>
+        <div class="ins"><div class="dot"></div><p>iOS×1on1 highest repeat %; strongest mobile retention.</p></div>
+        <div class="ins"><div class="dot"></div><p>Offline primarily web; mobile offline uptake remains low.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-<!-- ════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════ -->
+</div><!-- content -->
+
 <script>
-Chart.register(ChartDataLabels);
-Chart.defaults.font.family = "'Outfit', sans-serif";
+// ─── DATA ────────────────────────────────────────────────────
+const M = ['Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26'];
 
-// ── RAW DATA ──────────────────────────────────
-const MO = ['Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26'];
+// Total
+const totRev=[1423177,1743758,2664967,3917825,3709203,3897648,5183655,5529356,4608219,5021233,4250743,5359478,6120013,4111324];
+const nrPct=[71.27,66,61.9,59.95,57.16,54.77,55.75,52.98,45.36,48.23,49.55,49.79,50.5,46.65];
+const rrPct=[28.73,34,38.1,40.05,42.84,45.23,44.25,47.02,54.64,51.77,50.45,50.21,49.5,53.35];
 
-// Revenue datasets  {t: totals, np: new%}
-const R = {
-  total:         {t:[1423177,1743758,2664967,3917825,3709203,3897648,5183655,5529356,4608219,5021233,4250743,5359478,6120013,4111324], np:[71.27,66.00,61.90,59.95,57.16,54.77,55.75,52.98,45.36,48.23,49.55,49.79,50.50,46.65]},
-  web:           {t:[1369278,1647869,2454309,3585269,3187664,3364020,4521641,4510366,3489799,3864324,3312990,4322027,4736889,3130767], np:[73.10,68.67,66.19,64.92,64.49,59.98,61.47,61.04,54.45,57.18,58.17,56.28,59.93,55.07]},
-  ios:           {t:[45738,63006,104293,189757,331445,373556,382672,630605,708779,717311,518575,575580,821601,605044],               np:[85.97,72.34,50.49,54.55,40.12,54.75,50.20,52.55,44.71,48.43,34.69,50.27,48.15,48.12]},
-  android:       {t:[8161,32883,106365,142799,190094,160072,279342,388385,409641,439598,419178,461871,561523,375513],                 np:[99.96,48.04,56.56,34.89,49.16,45.98,48.37,49.95,53.44,51.71,42.55,48.24,48.29,42.09]},
-  group:         {t:[1423177,1678365,2197746,1939606,2697184,2441298,3214571,3407803,2653094,2462425,1850936,2191689,2933135,1677715], np:[71.27,66.64,63.47,54.57,60.50,55.76,58.08,56.63,47.99,55.24,51.67,52.20,56.26,45.23]},
-  offline:       {t:[0,0,68500,1313125,173000,354750,481125,641479,689031,975374,1039370,1227191,779254,1031264],                     np:[0,0,100,97.91,91.33,94.33,95.84,94.06,77.00,80.60,89.57,91.84,89.42,83.50]},
-  oneon1:        {t:[0,65393,393241,662194,838719,1101300,1487959,1480074,1266094,1555094,1328951,1902703,2360382,1370111],           np:[0,99.97,88.25,84.06,74.23,77.48,74.39,74.48,66.46,64.66,64.27,68.13,66.40,68.55]},
-  groupWeb:      {t:[1369262,1582472,1995214,1681375,2302943,2162926,2794192,2839921,2004118,1969690,1472152,1730506,2284793,1201951], np:[73.11,69.32,68.23,62.22,68.14,61.20,63.21,64.72,57.40,63.56,58.84,59.60,65.92,58.21]},
-  groupiOS:      {t:[45735,63005,101163,123832,247696,189864,225579,289540,399375,271841,229097,216506,318560,240017],                np:[85.97,73.53,49.25,48.36,44.24,45.08,46.33,52.51,42.37,49.04,45.42,51.54,45.65,40.01]},
-  groupAndroid:  {t:[8156,32883,101365,134399,146545,88501,137797,228335,211351,191067,138687,197377,318782,201961],                  np:[100,48.04,56.88,32.90,46.33,49.00,54.84,47.94,46.48,60.01,62.27,62.67,56.04,34.16]},
-  offlineWeb:    {t:[0,0,61000,1240000,158250,268000,454125,541359,595561,802431,943859,1079326,676222,933131],                       np:[0,0,100,97.98,92.10,96.46,97.25,96.31,80.86,85.92,91.96,91.47,91.60,85.90]},
-  offlineiOS:    {t:[0,0,2500,65625,5000,76875,19500,66622,74471,104648,41088,61388,43267,95930],                                     np:[0,0,100,96.19,50,97.24,100,96.25,91.31,91.09,76.81,100,100,92.36]},
-  offlineAndroid:{t:[0,0,5000,7500,9750,9875,7500,33498,18999,68295,54423,86477,59765,27105],                                         np:[0,0,100,100,100,100,100,89.55,81.58,95.74,86.17,100,90.97,78.24]},
-  oneon1Web:     {t:[0,65393,393241,662194,726171,932787,1216321,1079086,851870,1039912,860512,1433903,1727174,956577],               np:[0,99.97,88.25,84.06,76.36,81.59,79.94,81.19,72.95,73.64,75.94,76.97,73.32,74.41]},
-  oneon1iOS:     {t:[0,0,0,0,78749,106817,137593,274440,234933,337494,245205,294033,454665,270655],                                   np:[0,0,0,0,94.92,67.98,76.67,70.60,76.16,64.22,51.41,64.15,65.00,64.12]},
-  oneon1Android: {t:[0,0,0,0,33799,61696,134045,126548,179291,177688,223234,174767,178543,146713],                                    np:[0,0,0,0,65.98,63.13,63.89,71.95,67.76,51.95,48.11,46.48,57.83,71.47]}
+const totPur=[1110,1482,1915,1909,2207,2066,2858,2946,2144,2677,2099,2428,2940,1768];
+const npPct=[81.53,77.67,77.65,71.56,72,65.15,68.79,66.19,61.38,64.25,65.6,61.82,63.03,56.56];
+const rpPct=[18.47,22.33,22.35,28.44,28,34.85,31.21,33.81,38.62,35.75,34.4,38.18,36.97,43.44];
+
+// Platform Rev
+const wRev=[1369278,1647869,2454309,3585269,3187664,3364020,4521641,4510366,3489799,3864324,3312990,4322027,4736889,3130767];
+const nwrP=[73.1,68.67,66.19,64.92,64.49,59.98,61.47,61.04,54.45,57.18,58.17,56.28,59.93,55.07];
+const rwrP=[26.9,31.33,33.81,35.08,35.51,40.02,38.53,38.96,45.55,42.82,41.83,43.72,40.07,44.93];
+
+const iRev=[45738,63006,104293,189757,331445,373556,382672,630605,708779,717311,518575,575580,821601,605044];
+const nirP=[85.97,72.34,50.49,54.55,40.12,54.75,50.2,52.55,44.71,48.43,34.69,50.27,48.15,48.12];
+const rirP=[14.03,27.66,49.51,45.45,59.88,45.25,49.8,47.45,55.29,51.57,65.31,49.73,51.85,51.88];
+
+const aRev=[8161,32883,106365,142799,190094,160072,279342,388385,409641,439598,419178,461871,561523,375513];
+const narP=[99.96,48.04,56.56,34.89,49.16,45.98,48.37,49.95,53.44,51.71,42.55,48.24,48.29,42.09];
+const rarP=[0.04,51.96,43.44,65.11,50.84,54.02,51.63,50.05,46.56,48.29,57.45,51.76,51.71,57.91];
+
+// Platform Pur
+const wPur=[1085,1435,1835,1813,2030,1888,2649,2602,1833,2311,1808,2081,2527,1447];
+const nwpP=[82.21,78.82,79.24,74.46,76.11,68.7,72.33,70.87,66.07,69.36,70.41,66.12,68.7,62.89];
+const rwpP=[17.79,21.18,20.76,25.54,23.89,31.3,27.67,29.13,33.93,30.64,29.59,33.88,31.3,37.11];
+
+const iPur=[33,51,70,81,144,156,179,251,237,262,185,229,299,236];
+const nipP=[96.97,90.2,78.57,71.6,68.75,69.23,64.8,67.73,60.34,64.12,58.92,64.63,59.2,55.08];
+const ripP=[3.03,9.8,21.43,28.4,31.25,30.77,35.2,32.27,39.66,35.88,41.08,35.37,40.8,44.92];
+
+const aPur=[9,18,63,67,105,79,119,177,152,195,169,203,263,169];
+const napP=[100,94.44,92.06,73.13,69.52,62.03,68.91,66.1,67.11,73.85,70.41,67.49,66.92,52.66];
+const rapP=[0,5.56,7.94,26.87,30.48,37.97,31.09,33.9,32.89,26.15,29.59,32.51,33.08,47.34];
+
+// Session Rev (Total)
+const gRev=[1423177,1678365,2197746,1939606,2697184,2441298,3214571,3407803,2653094,2462425,1850936,2191689,2933135,1677715];
+const ngrP=[71.27,66.64,63.47,54.57,60.5,55.76,58.08,56.63,47.99,55.24,51.67,52.2,56.26,45.23];
+const rgrP=[28.73,33.36,36.53,45.43,39.5,44.24,41.92,43.37,52.01,44.76,48.33,47.8,43.74,54.77];
+
+const oRev=[0,0,68500,1313125,173000,354750,481125,641479,689031,975374,1039370,1227191,779254,1031264];
+const norP=[0,0,100,97.91,91.33,94.33,95.84,94.06,77,80.6,89.57,91.84,89.42,83.5];
+const rorP=[0,0,0,2.09,8.67,5.67,4.16,5.94,23,19.4,10.43,8.16,10.58,16.5];
+
+const xRev=[0,65393,393241,662194,838719,1101300,1487959,1480074,1266094,1555094,1328951,1902703,2360382,1370111];
+const nxrP=[0,99.97,88.25,84.06,74.23,77.48,74.39,74.48,66.46,64.66,64.27,68.13,66.4,68.55];
+const rxrP=[0,0.03,11.75,15.94,25.77,22.52,25.61,25.52,33.54,35.34,35.73,31.87,33.6,31.45];
+
+// Session Pur (Total)
+const gPur=[1099,1463,1831,1381,2006,1795,2471,2548,1815,2122,1505,1646,2248,1235];
+const ngpP=[81.8,77.92,77.55,69.8,73.83,65.96,69.08,67.82,62.64,65.6,64.98,63.3,66.15,55.55];
+const rgpP=[18.2,22.08,22.45,30.2,26.17,34.04,30.92,32.18,37.36,34.4,35.02,36.7,33.85,44.45];
+
+const oPur=[0,0,28,458,64,110,148,193,131,328,336,317,212,240];
+const nopP=[0,0,100,99.78,93.75,94.55,96.62,94.82,80.92,86.28,91.07,94.95,90.57,88.75];
+const ropP=[0,0,0,0.22,6.25,5.45,3.38,5.18,19.08,13.72,8.93,5.05,9.43,11.25];
+
+const xPur=[0,21,86,140,181,233,318,285,274,313,288,409,474,315];
+const nxpP=[0,100,98.84,90,84.53,86.27,85.53,81.75,76.28,78.59,78.47,79.46,75.95,77.14];
+const rxpP=[0,0,1.16,10,15.47,13.73,14.47,18.25,23.72,21.41,21.53,20.54,24.05,22.86];
+
+// Platform×Session Rev
+const gwRev=[1369262,1582472,1995214,1681375,2302943,2162926,2794192,2839921,2004118,1969690,1472152,1730506,2284793,1201951];
+const ngwrP=[73.11,69.32,68.23,62.22,68.14,61.2,63.21,64.72,57.4,63.56,58.84,59.6,65.92,58.21];
+const rgwrP=[26.89,30.68,31.77,37.78,31.86,38.8,36.79,35.28,42.6,36.44,41.16,40.4,34.08,41.79];
+
+const giRev=[45735,63005,101163,123832,247696,189864,225579,289540,399375,271841,229097,216506,318560,240017];
+const ngirP=[85.97,73.53,49.25,48.36,44.24,45.08,46.33,52.51,42.37,49.04,45.42,51.54,45.65,40.01];
+const rgirP=[14.03,26.47,50.75,51.64,55.76,54.92,53.67,47.49,57.63,50.96,54.58,48.46,54.35,59.99];
+
+const gaRev=[8156,32883,101365,134399,146545,88501,137797,228335,211351,191067,138687,197377,318782,201961];
+const ngarP=[100,48.04,56.88,32.9,46.33,49,54.84,47.94,46.48,60.01,62.27,62.67,56.04,34.16];
+const rgarP=[0,51.96,43.12,67.1,53.67,51,45.16,52.06,53.52,39.99,37.73,37.33,43.96,65.84];
+
+const owRev=[0,0,61000,1240000,158250,268000,454125,541359,595561,802431,943859,1079326,676222,933131];
+const nowrP=[0,0,100,97.98,92.1,96.46,97.25,96.31,80.86,85.92,91.96,91.47,91.6,85.9];
+const rowrP=[0,0,0,2.02,7.9,3.54,2.75,3.69,19.14,14.08,8.04,8.53,8.4,14.1];
+
+const oiRev=[0,0,2500,65625,5000,76875,19500,66622,74471,104648,41088,61388,43267,95930];
+const noiP=[0,0,100,96.19,50,97.24,100,96.25,91.31,91.09,76.81,100,100,92.36];
+const roiP=[0,0,0,3.81,50,2.76,0,3.75,8.69,8.91,23.19,0,0,7.64];
+
+const oaRev=[0,0,5000,7500,9750,9875,7500,33498,18999,68295,54423,86477,59765,27105];
+const noaP=[0,0,100,100,100,100,100,89.55,81.58,95.74,86.17,100,90.97,78.24];
+const roaP=[0,0,0,0,0,0,0,10.45,18.42,4.26,13.83,0,9.03,21.76];
+
+const xwRev=[0,65393,393241,662194,726171,932787,1216321,1079086,851870,1039912,860512,1433903,1727174,956577];
+const nxwrP=[0,99.97,88.25,84.06,76.36,81.59,79.94,81.19,72.95,73.64,75.94,76.97,73.32,74.41];
+const rxwrP=[0,0.03,11.75,15.94,23.64,18.41,20.06,18.81,27.05,26.36,24.06,23.03,26.68,25.59];
+
+const xiRev=[0,0,0,0,78749,106817,137593,274440,234933,337494,245205,294033,454665,270655];
+const nxiP=[0,0,0,0,94.92,67.98,76.67,70.6,76.16,64.22,51.41,64.15,65,64.12];
+const rxiP=[0,0,0,0,5.08,32.02,23.33,29.4,23.84,35.78,48.59,35.85,35,35.88];
+
+const xaRev=[0,0,0,0,33799,61696,134045,126548,179291,177688,223234,174767,178543,146713];
+const nxaP=[0,0,0,0,65.98,63.13,63.89,71.95,67.76,51.95,48.11,46.48,57.83,71.47];
+const rxaP=[0,0,0,0,34.02,36.87,36.11,28.05,32.24,48.05,51.89,53.52,42.17,28.53];
+
+// Platform×Session Pur
+const gwPur=[1077,1415,1746,1294,1839,1653,2295,2265,1569,1837,1283,1373,1864,974];
+const ngwpP=[82.45,79.08,79.27,73.49,77.43,69.87,72.55,72.49,67.11,70.44,69.84,68.24,72.64,64.27];
+const rgwpP=[17.55,20.92,20.73,26.51,22.57,30.13,27.45,27.51,32.89,29.56,30.16,31.76,27.36,35.73];
+
+const giPur=[31,51,67,61,136,119,151,199,185,190,137,163,228,171];
+const ngipP=[96.77,90.2,77.61,68.85,72.06,62.18,64.24,64.82,58.92,63.68,61.31,65.64,59.21,52.63];
+const rgipP=[3.23,9.8,22.39,31.15,27.94,37.82,35.76,35.18,41.08,36.32,38.69,34.36,40.79,47.37];
+
+const gaPur=[7,18,62,64,96,68,99,142,119,149,123,153,224,137];
+const ngapP=[100,94.44,91.94,71.88,67.71,60.29,67.68,66.2,66.39,74.5,73.17,73.2,72.32,48.91];
+const rgapP=[0,5.56,8.06,28.13,32.29,39.71,32.32,33.8,33.61,25.5,26.83,26.8,27.68,51.09];
+
+const owPur=[0,0,25,432,58,81,140,162,110,275,302,276,188,219];
+const nowpP=[0,0,100,99.77,94.83,97.53,98.57,96.91,87.27,91.27,93.71,95.29,94.68,91.32];
+const rowpP=[0,0,0,0.23,5.17,2.47,1.43,3.09,12.73,8.73,6.29,4.71,5.32,8.68];
+
+const oiPur=[0,0,1,23,2,25,5,23,16,32,17,18,10,22];
+const noiPP=[0,0,100,100,50,96,100,95.65,87.5,93.75,82.35,100,100,86.36];
+const roiPP=[0,0,0,0,50,4,0,4.35,12.5,6.25,17.65,0,0,13.64];
+
+const oaPur=[0,0,2,3,4,4,3,10,5,24,19,23,15,6];
+
+const xwPur=[0,21,86,140,168,199,263,213,195,225,210,319,372,237];
+const nxwpP=[0,100,98.84,90,85.12,88.94,91.25,84.98,81.54,84.44,83.81,85.89,81.18,81.01];
+const rxwpP=[0,0,1.16,10,14.88,11.06,8.75,15.02,18.46,15.56,16.19,14.11,18.82,18.99];
+
+const xiPur=[0,0,0,0,13,24,32,47,52,62,44,59,77,56];
+const nxipP=[0,0,0,0,100,83.33,84.38,91.49,82.69,82.26,77.27,79.66,74.03,73.21];
+const rxipP=[0,0,0,0,0,16.67,15.63,8.51,17.31,17.74,22.73,20.34,25.97,26.79];
+
+const xaPur=[0,0,0,0,6,12,25,30,34,33,36,37,35,33];
+const nxapP=[0,0,0,0,100,83.33,88,73.33,79.41,72.73,75,64.86,71.43,81.82];
+const rxapP=[0,0,0,0,0,16.67,12,26.67,20.59,27.27,25,35.14,28.57,18.18];
+
+// ─── HELPERS ─────────────────────────────────────────────────
+const fL = v => v>=1e7?`₹${(v/1e7).toFixed(1)}Cr`:(v>=1e5?`₹${(v/1e5).toFixed(1)}L`:(v>=1e3?`₹${(v/1e3).toFixed(0)}K`:`₹${v}`));
+const arr = (a,b,fn) => a.map((v,i)=>fn(v,i,b[i]));
+const sum = a => a.reduce((s,v)=>s+v,0);
+const wAvg = (vals,wts) => { let s=0,w=0; vals.forEach((v,i)=>{s+=v*wts[i];w+=wts[i];}); return w?s/w:0; };
+
+const COLORS = {
+  new:'rgba(59,130,246,0.85)', rep:'rgba(16,185,129,0.85)',
+  web:'rgba(59,130,246,0.85)', ios:'rgba(245,158,11,0.85)', and:'rgba(139,92,246,0.85)',
+  grp:'rgba(16,185,129,0.85)', off:'rgba(239,68,68,0.85)', on1:'rgba(59,130,246,0.85)',
+  line:'#1E293B', webL:'#3B82F6', iosL:'#F59E0B', andL:'#8B5CF6',
+  grpL:'#10B981', offL:'#EF4444', on1L:'#3B82F6'
 };
 
-// Purchase datasets {t: totals, np: new%}
-const P = {
-  total:         {t:[1110,1482,1915,1909,2207,2066,2858,2946,2144,2677,2099,2428,2940,1768],  np:[81.53,77.67,77.65,71.56,72.00,65.15,68.79,66.19,61.38,64.25,65.60,61.82,63.03,56.56]},
-  web:           {t:[1085,1435,1835,1813,2030,1888,2649,2602,1833,2311,1808,2081,2527,1447],   np:[82.21,78.82,79.24,74.46,76.11,68.70,72.33,70.87,66.07,69.36,70.41,66.12,68.70,62.89]},
-  ios:           {t:[33,51,70,81,144,156,179,251,237,262,185,229,299,236],                      np:[96.97,90.20,78.57,71.60,68.75,69.23,64.80,67.73,60.34,64.12,58.92,64.63,59.20,55.08]},
-  android:       {t:[9,18,63,67,105,79,119,177,152,195,169,203,263,169],                        np:[100,94.44,92.06,73.13,69.52,62.03,68.91,66.10,67.11,73.85,70.41,67.49,66.92,52.66]},
-  group:         {t:[1099,1463,1831,1381,2006,1795,2471,2548,1815,2122,1505,1646,2248,1235],   np:[81.80,77.92,77.55,69.80,73.83,65.96,69.08,67.82,62.64,65.60,64.98,63.30,66.15,55.55]},
-  offline:       {t:[0,0,28,458,64,110,148,193,131,328,336,317,212,240],                        np:[0,0,100,99.78,93.75,94.55,96.62,94.82,80.92,86.28,91.07,94.95,90.57,88.75]},
-  oneon1:        {t:[0,21,86,140,181,233,318,285,274,313,288,409,474,315],                      np:[0,100,98.84,90.00,84.53,86.27,85.53,81.75,76.28,78.59,78.47,79.46,75.95,77.14]},
-  groupWeb:      {t:[1077,1415,1746,1294,1839,1653,2295,2265,1569,1837,1283,1373,1864,974],    np:[82.45,79.08,79.27,73.49,77.43,69.87,72.55,72.49,67.11,70.44,69.84,68.24,72.64,64.27]},
-  groupiOS:      {t:[31,51,67,61,136,119,151,199,185,190,137,163,228,171],                      np:[96.77,90.20,77.61,68.85,72.06,62.18,64.24,64.82,58.92,63.68,61.31,65.64,59.21,52.63]},
-  groupAndroid:  {t:[7,18,62,64,96,68,99,142,119,149,123,153,224,137],                          np:[100,94.44,91.94,71.88,67.71,60.29,67.68,66.20,66.39,74.50,73.17,73.20,72.32,48.91]},
-  offlineWeb:    {t:[0,0,25,432,58,81,140,162,110,275,302,276,188,219],                         np:[0,0,100,99.77,94.83,97.53,98.57,96.91,87.27,91.27,93.71,95.29,94.68,91.32]},
-  offlineiOS:    {t:[0,0,1,23,2,25,5,23,16,32,17,18,10,22],                                     np:[0,0,100,100,50,96,100,95.65,87.50,93.75,82.35,100,100,86.36]},
-  offlineAndroid:{t:[0,0,2,3,4,4,3,10,5,24,19,23,15,6],                                         np:[0,0,100,100,100,100,100,90,80,95.83,89.47,100,86.67,100]},
-  oneon1Web:     {t:[0,21,86,140,168,199,263,213,195,225,210,319,372,237],                      np:[0,100,98.84,90,85.12,88.94,91.25,84.98,81.54,84.44,83.81,85.89,81.18,81.01]},
-  oneon1iOS:     {t:[0,0,0,0,13,24,32,47,52,62,44,59,77,56],                                    np:[0,0,0,0,100,83.33,84.38,91.49,82.69,82.26,77.27,79.66,74.03,73.21]},
-  oneon1Android: {t:[0,0,0,0,6,12,25,30,34,33,36,37,35,33],                                     np:[0,0,0,0,100,83.33,88,73.33,79.41,72.73,75,64.86,71.43,81.82]}
-};
-
-// ── HELPERS ──────────────────────────────────
-const S = n => n>=1e6?'₹'+(n/1e6).toFixed(1)+'M':n>=1e3?'₹'+Math.round(n/1e3)+'K':'₹'+n;
-const N = n => n>=1e3?(n/1e3).toFixed(1)+'K':String(n);
-const SUM = a => a.reduce((s,v)=>s+v,0);
-
-function getNR(d) {
-  const nv = d.t.map((t,i) => Math.round(t * d.np[i] / 100));
-  const rv = d.t.map((t,i) => t - Math.round(t * d.np[i] / 100));
-  return {n:nv, r:rv};
+// linear trendline
+function trend(data){
+  const n=data.length; let sx=0,sy=0,sxy=0,sx2=0;
+  data.forEach((y,x)=>{sx+=x;sy+=y;sxy+=x*y;sx2+=x*x;});
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx);
+  const b=(sy-m*sx)/n;
+  return data.map((_,x)=>+(m*x+b).toFixed(2));
 }
 
-function combine(d1, d2) {
-  const t = d1.t.map((v,i)=>v+d2.t[i]);
-  const np = d1.t.map((v,i)=>{
-    const total = v+d2.t[i];
-    if(!total) return 0;
-    return (Math.round(v*d1.np[i]/100)+Math.round(d2.t[i]*d2.np[i]/100))/total*100;
-  });
-  return {t,np};
-}
-
-function getSessionData(DB, plat) {
-  if(plat==='total') return {gr:DB.group, of:DB.offline, oo:DB.oneon1};
-  if(plat==='web')   return {gr:DB.groupWeb, of:DB.offlineWeb, oo:DB.oneon1Web};
-  if(plat==='ios')   return {gr:DB.groupiOS, of:DB.offlineiOS, oo:DB.oneon1iOS};
-  if(plat==='android') return {gr:DB.groupAndroid, of:DB.offlineAndroid, oo:DB.oneon1Android};
-  if(plat==='app') return {
-    gr: combine(DB.groupiOS, DB.groupAndroid),
-    of: combine(DB.offlineiOS, DB.offlineAndroid),
-    oo: combine(DB.oneon1iOS, DB.oneon1Android)
-  };
-}
-
-// ── COLORS ───────────────────────────────────
-const C = {
-  new:'#1D4ED8', rep:'#93C5FD',
-  web:'#1E3A8A', webL:'#BFDBFE',
-  ios:'#6D28D9', iosL:'#C4B5FD',
-  and:'#065F46', andL:'#A7F3D0',
-  grp:'#991B1B', grpL:'#FECACA',
-  off:'#92400E', offL:'#FDE68A',
-  oo:'#0C4A6E',  ooL:'#BAE6FD',
-  line:'#1E293B', grid:'#F3F4F6', ax:'#9CA3AF'
-};
-
-const BASE_OPTS = {
-  responsive:true, maintainAspectRatio:false,
-  interaction:{mode:'index',intersect:false},
-  animation:{duration:350}
-};
-
-function axisY(isR) {
-  return {
-    stacked:true,
-    grid:{color:C.grid,lineWidth:1},
-    border:{display:false},
-    ticks:{font:{size:10},color:C.ax,callback:v=>isR?S(v):N(v)}
-  };
-}
-function axisX() {
-  return {stacked:true,grid:{display:false},ticks:{font:{size:9},color:C.ax}};
-}
-
-const charts={};
-function kill(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
-
-// ── SECTION 1: Simple stacked (new/repeat) ───
-function makeSimpleStack(id, DB, isR) {
-  kill(id);
-  const {n,r}=getNR(DB);
-  const ctx=document.getElementById(id).getContext('2d');
-  charts[id]=new Chart(ctx,{
-    type:'bar',
+function stackedBarLine(id, labels, ds1, ds1lbl, ds2, ds2lbl, total, lineColor, fmt){
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  const pct1 = ds1.map((v,i)=>total[i]?+(v/total[i]*100).toFixed(1):0);
+  const pct2 = ds2.map((v,i)=>total[i]?+(v/total[i]*100).toFixed(1):0);
+  return new Chart(ctx,{
     data:{
-      labels:MO,
+      labels,
       datasets:[
-        {label:'New', data:n, backgroundColor:C.new, stack:'s',
-          datalabels:{
-            display:(c)=>{const tot=DB.t[c.dataIndex];return tot>0&&n[c.dataIndex]/tot>0.08;},
-            formatter:(v,c)=>Math.round(v/DB.t[c.dataIndex]*100)+'%',
-            color:'#fff',font:{size:9,weight:'600'},anchor:'center',align:'center'
-          }},
-        {label:'Repeat', data:r, backgroundColor:C.rep, stack:'s',
-          borderRadius:{topLeft:3,topRight:3},
-          datalabels:{
-            display:(c)=>{const tot=DB.t[c.dataIndex];return tot>0&&r[c.dataIndex]/tot>0.08;},
-            formatter:(v,c)=>Math.round(v/DB.t[c.dataIndex]*100)+'%',
-            color:'#1E40AF',font:{size:9,weight:'600'},anchor:'center',align:'center'
-          }},
-        {label:'Total', data:DB.t, type:'line', borderColor:C.line, borderWidth:2,
-          pointRadius:3, pointBackgroundColor:C.line, fill:false, tension:0.3,
-          datalabels:{display:false}}
+        {type:'bar',label:ds1lbl,data:ds1,backgroundColor:COLORS.new,stack:'s',order:2},
+        {type:'bar',label:ds2lbl,data:ds2,backgroundColor:COLORS.rep,stack:'s',order:2},
+        {type:'line',label:'Total',data:total,borderColor:lineColor||COLORS.line,borderWidth:2,pointRadius:3,pointBackgroundColor:lineColor||COLORS.line,fill:false,tension:0.3,order:1,yAxisID:'y'}
       ]
     },
     options:{
-      ...BASE_OPTS,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${isR?S(c.raw):c.raw}`}}},
-      scales:{x:axisX(),y:axisY(isR)}
-    }
-  });
-}
-
-// ── SECTION 2/4: 3-way stacked bar ───────────
-function make3Way(id, d1, d2, d3, clrs, lbls, isR) {
-  kill(id);
-  const tot=d1.t.map((v,i)=>v+d2.t[i]+d3.t[i]);
-  const ctx=document.getElementById(id).getContext('2d');
-  function dlCfg(dt, cl){
-    return {
-      display:(c)=>dt.t[c.dataIndex]/(tot[c.dataIndex]||1)>0.05,
-      formatter:(v,c)=>Math.round(v/(tot[c.dataIndex]||1)*100)+'%',
-      color:cl,font:{size:9,weight:'600'},anchor:'center',align:'center'
-    };
-  }
-  charts[id]=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:MO,
-      datasets:[
-        {label:lbls[0],data:d1.t,backgroundColor:clrs[0],stack:'s',datalabels:dlCfg(d1,'#fff')},
-        {label:lbls[1],data:d2.t,backgroundColor:clrs[1],stack:'s',datalabels:dlCfg(d2,'#fff')},
-        {label:lbls[2],data:d3.t,backgroundColor:clrs[2],stack:'s',borderRadius:{topLeft:3,topRight:3},datalabels:dlCfg(d3,'#fff')},
-        {label:'Total',data:tot,type:'line',borderColor:C.line,borderWidth:2,pointRadius:3,
-          pointBackgroundColor:C.line,fill:false,tension:0.3,datalabels:{display:false}}
-      ]
-    },
-    options:{
-      ...BASE_OPTS,
+      responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:c=>{
-          if(c.dataset.label==='Total') return `Total: ${isR?S(c.raw):c.raw}`;
-          const p=tot[c.dataIndex]>0?Math.round(c.raw/tot[c.dataIndex]*100):0;
-          return `${c.dataset.label}: ${isR?S(c.raw):c.raw} (${p}%)`;
-        }}}
-      },
-      scales:{x:axisX(),y:axisY(isR)}
-    }
-  });
-}
-
-// ── SECTION 3/5: Grouped stacked + trendlines ─
-function makeGroupedStack(id, groups, colors, trendColors, isR) {
-  kill(id);
-  const datasets=[];
-  groups.forEach((g,gi)=>{
-    const {n,r}=getNR(g);
-    datasets.push({
-      label:g.label+' New', data:n, backgroundColor:colors[gi].n, stack:'g'+gi,
-      datalabels:{
-        display:(c)=>n[c.dataIndex]>0&&n[c.dataIndex]/(g.t[c.dataIndex]||1)>0.12,
-        formatter:(v,c)=>Math.round(v/(g.t[c.dataIndex]||1)*100)+'%',
-        color:'#fff',font:{size:8,weight:'600'},anchor:'center',align:'center'
-      }
-    });
-    datasets.push({
-      label:g.label+' Repeat', data:r, backgroundColor:colors[gi].r, stack:'g'+gi,
-      borderRadius:{topLeft:2,topRight:2},
-      datalabels:{
-        display:(c)=>r[c.dataIndex]>0&&r[c.dataIndex]/(g.t[c.dataIndex]||1)>0.12,
-        formatter:(v,c)=>Math.round(v/(g.t[c.dataIndex]||1)*100)+'%',
-        color:gi===0?'#7F1D1D':gi===1?'#451A03':'#082F49',
-        font:{size:8,weight:'600'},anchor:'center',align:'center'
-      }
-    });
-  });
-  groups.forEach((g,gi)=>{
-    datasets.push({
-      label:g.label, data:g.t, type:'line',
-      borderColor:trendColors[gi], borderWidth:2,
-      borderDash:[4,3], pointRadius:3,
-      pointBackgroundColor:trendColors[gi],
-      fill:false, tension:0.3, datalabels:{display:false}
-    });
-  });
-  const ctx=document.getElementById(id).getContext('2d');
-  charts[id]=new Chart(ctx,{
-    type:'bar',
-    data:{labels:MO, datasets},
-    options:{
-      ...BASE_OPTS,
-      plugins:{
-        legend:{
-          display:true, position:'bottom',
-          labels:{font:{size:10},boxWidth:12,padding:10,
-            filter:(it)=>!it.text.includes(' New')&&!it.text.includes(' Repeat')}
-        },
-        tooltip:{
-          filter:item=>item.dataset.type==='line',
-          callbacks:{label:c=>`${c.dataset.label}: ${isR?S(c.raw):c.raw}`}
-        }
+        legend:{labels:{boxWidth:10,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+(fmt?fmt(c.raw):c.raw.toLocaleString())}},
+        datalabels:{display:false}
       },
       scales:{
-        x:{stacked:true, grid:{display:false}, ticks:{font:{size:9},color:C.ax}},
-        y:{stacked:true, grid:{color:C.grid}, border:{display:false},
-          ticks:{font:{size:10},color:C.ax,callback:v=>isR?S(v):String(v)}}
+        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
+        y:{stacked:true,grid:{color:'#F1F5F9'},ticks:{font:{size:10},callback:v=>fmt?fmt(v):v>=1e5?(v/1e5).toFixed(0)+'L':v>=1e3?(v/1e3).toFixed(0)+'K':v}}
+      },
+      animation:false
+    },
+    plugins:[{
+      id:'pctLabels',
+      afterDraw(chart){
+        const ctx2=chart.ctx;
+        [0,1].forEach(di=>{
+          const meta=chart.getDatasetMeta(di);
+          const pctArr=di===0?pct1:pct2;
+          meta.data.forEach((bar,i)=>{
+            const v=chart.data.datasets[di].data[i];
+            if(!v||v<(fmt?1000:0)) return;
+            const {x,y,base}=bar;
+            const h=Math.abs(base-y);
+            if(h<14) return;
+            ctx2.save();
+            ctx2.fillStyle='rgba(255,255,255,0.9)';
+            ctx2.font='bold 9px system-ui';
+            ctx2.textAlign='center';
+            ctx2.textBaseline='middle';
+            const mid=(y+base)/2;
+            ctx2.fillText(pctArr[i]+'%',x,mid);
+            ctx2.restore();
+          });
+        });
+        // total label on line
+        const lineMeta=chart.getDatasetMeta(2);
+        lineMeta.data.forEach((pt,i)=>{
+          const v=chart.data.datasets[2].data[i];
+          ctx2.save();
+          ctx2.fillStyle=lineColor||COLORS.line;
+          ctx2.font='bold 9px system-ui';
+          ctx2.textAlign='center';
+          ctx2.textBaseline='bottom';
+          ctx2.fillText(fmt?fmt(v):v>=1e5?(v/1e5).toFixed(1)+'L':v,pt.x,pt.y-2);
+          ctx2.restore();
+        });
       }
-    }
+    }]
   });
 }
 
-// ── KPI STRIP ─────────────────────────────────
-function renderKPIs(){
-  const totR=SUM(R.total.t);
-  const newR=R.total.t.reduce((a,v,i)=>a+Math.round(v*R.total.np[i]/100),0);
-  const repPct=(totR-newR)/totR*100;
-  const totP=SUM(P.total.t);
-  const yoy=((R.total.t[12]-R.total.t[0])/R.total.t[0]*100).toFixed(0);
-  const peakIdx=R.total.t.indexOf(Math.max(...R.total.t));
-  const repDelta=((100-R.total.np[13])-(100-R.total.np[0])).toFixed(1);
-  const aov=(totR/totP).toFixed(0);
-
-  const kpis=[
-    {lbl:'Total Revenue',val:S(totR),sub:'Apr 25 — May 26',accent:'#1D4ED8'},
-    {lbl:'Total Purchases',val:totP.toLocaleString(),sub:'All sessions & platforms',accent:'#6D28D9'},
-    {lbl:'Overall Repeat %',val:repPct.toFixed(1)+'%',sub:'of cumulative revenue',accent:'#0C4A6E'},
-    {lbl:'YoY Revenue Growth',val:yoy+'%',sub:'Apr 25 → Apr 26',accent:'#065F46',tag:{c:'g',t:'↑ Growing'}},
-    {lbl:'Peak Month',val:MO[peakIdx],sub:S(R.total.t[peakIdx])+' revenue',accent:'#92400E'},
-    {lbl:'Repeat Δ',val:'+'+repDelta+'pp',sub:'Apr 25 → May 26 shift',accent:'#991B1B',tag:{c:'g',t:'↑ Gaining'}}
-  ];
-  document.getElementById('kpiStrip').innerHTML=kpis.map(k=>`
-    <div class="kpi" style="--accent:${k.accent}">
-      <div class="kpi-lbl">${k.lbl}</div>
-      <div class="kpi-val">${k.val}</div>
-      <div class="kpi-sub">${k.sub}</div>
-      ${k.tag?`<div class="kpi-tag tag-${k.tag.c}">${k.tag.t}</div>`:''}
-    </div>`).join('');
+function stackedBarLine3(id, labels, d1, l1, d2, l2, d3, l3, total, c1, c2, c3, fmt){
+  const ctx=document.getElementById(id);
+  if(!ctx) return;
+  const p1=d1.map((v,i)=>total[i]?+(v/total[i]*100).toFixed(1):0);
+  const p2=d2.map((v,i)=>total[i]?+(v/total[i]*100).toFixed(1):0);
+  const p3=d3.map((v,i)=>total[i]?+(v/total[i]*100).toFixed(1):0);
+  return new Chart(ctx,{
+    data:{labels,datasets:[
+      {type:'bar',label:l1,data:d1,backgroundColor:c1,stack:'s',order:2},
+      {type:'bar',label:l2,data:d2,backgroundColor:c2,stack:'s',order:2},
+      {type:'bar',label:l3,data:d3,backgroundColor:c3,stack:'s',order:2},
+      {type:'line',label:'Total',data:total,borderColor:COLORS.line,borderWidth:2,pointRadius:3,fill:false,tension:0.3,order:1,yAxisID:'y'}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{boxWidth:10,font:{size:11}}},datalabels:{display:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
+        y:{stacked:true,grid:{color:'#F1F5F9'},ticks:{font:{size:10},callback:v=>fmt?fmt(v):v>=1e5?(v/1e5).toFixed(0)+'L':v>=1e3?(v/1e3).toFixed(0)+'K':v}}
+      },
+      animation:false
+    },
+    plugins:[{
+      id:'pct3',
+      afterDraw(chart){
+        const ctx2=chart.ctx;
+        [[0,p1],[1,p2],[2,p3]].forEach(([di,pArr])=>{
+          const meta=chart.getDatasetMeta(di);
+          meta.data.forEach((bar,i)=>{
+            const v=chart.data.datasets[di].data[i];
+            if(!v) return;
+            const {x,y,base}=bar;
+            if(Math.abs(base-y)<14) return;
+            ctx2.save();
+            ctx2.fillStyle='rgba(255,255,255,0.9)';
+            ctx2.font='bold 9px system-ui';
+            ctx2.textAlign='center';
+            ctx2.textBaseline='middle';
+            ctx2.fillText(pArr[i]+'%',x,(y+base)/2);
+            ctx2.restore();
+          });
+        });
+        const lm=chart.getDatasetMeta(3);
+        lm.data.forEach((pt,i)=>{
+          const v=chart.data.datasets[3].data[i];
+          ctx2.save();
+          ctx2.fillStyle=COLORS.line;
+          ctx2.font='bold 9px system-ui';
+          ctx2.textAlign='center';
+          ctx2.textBaseline='bottom';
+          ctx2.fillText(fmt?fmt(v):v>=1e5?(v/1e5).toFixed(1)+'L':v,pt.x,pt.y-2);
+          ctx2.restore();
+        });
+      }
+    }]
+  });
 }
 
-// ── MATRIX ────────────────────────────────────
-function computeMatrixCell(rv){
-  const tot=SUM(rv.t);
-  const newRev=rv.t.reduce((a,v,i)=>a+Math.round(v*rv.np[i]/100),0);
-  return {tot, repPct:tot>0?(tot-newRev)/tot*100:0};
+// Grouped bars (3 platforms, each split new/rep) + 3 trendlines for rep%
+function groupedTrendChart(id, labels, data1new, data1rep, data2new, data2rep, data3new, data3rep, lbl1, lbl2, lbl3, c1, c2, c3, isRev){
+  const ctx=document.getElementById(id);
+  if(!ctx) return;
+  const r1=data1rep.map((v,i)=>{const t=v+data1new[i];return t?+(v/t*100).toFixed(1):0;});
+  const r2=data2rep.map((v,i)=>{const t=v+data2new[i];return t?+(v/t*100).toFixed(1):0;});
+  const r3=data3rep.map((v,i)=>{const t=v+data3new[i];return t?+(v/t*100).toFixed(1):0;});
+  const t1=trend(r1), t2=trend(r2), t3=trend(r3);
+  return new Chart(ctx,{
+    data:{labels,datasets:[
+      {type:'bar',label:lbl1+' New',data:data1new,backgroundColor:c1.replace('0.85','0.4'),stack:lbl1,order:2,yAxisID:'y'},
+      {type:'bar',label:lbl1+' Rep',data:data1rep,backgroundColor:c1,stack:lbl1,order:2,yAxisID:'y'},
+      {type:'bar',label:lbl2+' New',data:data2new,backgroundColor:c2.replace('0.85','0.4'),stack:lbl2,order:2,yAxisID:'y'},
+      {type:'bar',label:lbl2+' Rep',data:data2rep,backgroundColor:c2,stack:lbl2,order:2,yAxisID:'y'},
+      {type:'bar',label:lbl3+' New',data:data3new,backgroundColor:c3.replace('0.85','0.4'),stack:lbl3,order:2,yAxisID:'y'},
+      {type:'bar',label:lbl3+' Rep',data:data3rep,backgroundColor:c3,stack:lbl3,order:2,yAxisID:'y'},
+      {type:'line',label:lbl1+' Rep%',data:t1,borderColor:c1.replace('rgba(','').replace(',0.85)','').split(',').reduce((_,__,i,a)=>i===0?`rgb(${a.slice(0,3).join(',')})`:_,''),borderWidth:2,pointRadius:0,fill:false,tension:0.4,yAxisID:'y2',order:1,borderDash:[4,2]},
+      {type:'line',label:lbl2+' Rep%',data:t2,borderColor:c2.replace('rgba(','').replace(',0.85)','').split(',').reduce((_,__,i,a)=>i===0?`rgb(${a.slice(0,3).join(',')})`:_,''),borderWidth:2,pointRadius:0,fill:false,tension:0.4,yAxisID:'y2',order:1,borderDash:[4,2]},
+      {type:'line',label:lbl3+' Rep%',data:t3,borderColor:c3.replace('rgba(','').replace(',0.85)','').split(',').reduce((_,__,i,a)=>i===0?`rgb(${a.slice(0,3).join(',')})`:_,''),borderWidth:2,pointRadius:0,fill:false,tension:0.4,yAxisID:'y2',order:1,borderDash:[4,2]}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{boxWidth:8,font:{size:10},filter:i=>!i.text.includes('New')}},
+        datalabels:{display:false}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}},
+        y:{stacked:true,grid:{color:'#F1F5F9'},ticks:{font:{size:9},callback:v=>isRev?(v>=1e5?(v/1e5).toFixed(0)+'L':v>=1e3?(v/1e3).toFixed(0)+'K':v):v},position:'left'},
+        y2:{type:'linear',position:'right',min:0,max:100,ticks:{font:{size:9},callback:v=>v+'%'},grid:{display:false}}
+      },
+      animation:false
+    },
+    plugins:[{
+      id:'repPct',
+      afterDraw(chart){
+        const ctx2=chart.ctx;
+        [[0,1],[2,3],[4,5]].forEach(([ni,ri])=>{
+          const mN=chart.getDatasetMeta(ni), mR=chart.getDatasetMeta(ri);
+          mR.data.forEach((bar,i)=>{
+            const vN=chart.data.datasets[ni].data[i];
+            const vR=chart.data.datasets[ri].data[i];
+            const t=vN+vR; if(!t) return;
+            const {x,y,base}=bar;
+            if(Math.abs(base-y)<12) return;
+            ctx2.save();
+            ctx2.fillStyle='rgba(255,255,255,0.9)';
+            ctx2.font='bold 8px system-ui';
+            ctx2.textAlign='center';
+            ctx2.textBaseline='middle';
+            ctx2.fillText(+(vR/t*100).toFixed(0)+'%',x,(y+base)/2);
+            ctx2.restore();
+          });
+        });
+      }
+    }]
+  });
 }
 
-function renderMatrix(){
-  const platforms=['Web','iOS','Android'];
-  const sessions=['Group','Offline','1on1'];
-  const lookup={
-    'Group-Web':R.groupWeb,'Group-iOS':R.groupiOS,'Group-Android':R.groupAndroid,
-    'Offline-Web':R.offlineWeb,'Offline-iOS':R.offlineiOS,'Offline-Android':R.offlineAndroid,
-    '1on1-Web':R.oneon1Web,'1on1-iOS':R.oneon1iOS,'1on1-Android':R.oneon1Android
-  };
-  const totAll=SUM(R.total.t);
-  const cells={};
-  let maxTot=0;
-  for(const k in lookup){const c=computeMatrixCell(lookup[k]);cells[k]=c;if(c.tot>maxTot)maxTot=c.tot;}
-  
-  function buildTable(elId, showRev){
-    let h=`<thead><tr><th></th>${sessions.map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>`;
-    platforms.forEach(p=>{
-      h+=`<tr><td class="mx-table td:first-child" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6B7280;white-space:nowrap;padding-right:16px">${p}</td>`;
-      sessions.forEach(s=>{
-        const key=`${s}-${p}`;
-        const c=cells[key];
-        if(showRev){
-          const ratio=c.tot/maxTot;
-          const bg=`rgba(29,78,216,${0.04+ratio*0.18})`;
-          h+=`<td style="background:${bg};text-align:center;padding:14px 10px">
-            <div class="cell-v">${S(c.tot)}</div>
-            <div class="cell-s">${(c.tot/totAll*100).toFixed(1)}% of total</div>
-            <div class="cell-bar-bg"><div class="cell-bar-fg" style="width:${Math.round(ratio*100)}%;background:#1D4ED8"></div></div>
-          </td>`;
-        } else {
-          const rp=c.repPct;
-          const bg=rp>45?`rgba(16,185,129,${0.06+rp/100*0.22})`:rp>20?`rgba(245,158,11,${0.06+rp/100*0.22})`:`rgba(59,130,246,${0.08})`;
-          const tc=rp>45?'#14532D':rp>20?'#78350F':'#1E3A8A';
-          h+=`<td style="background:${bg};text-align:center;padding:14px 10px">
-            <div class="cell-v" style="color:${tc}">${rp.toFixed(1)}%</div>
-            <div class="cell-s" style="color:${tc}">repeat share</div>
-            <div class="cell-bar-bg"><div class="cell-bar-fg" style="width:${Math.min(100,rp).toFixed(0)}%;background:${tc}"></div></div>
-          </td>`;
-        }
-      });
-      h+='</tr>';
-    });
-    h+='</tbody>';
-    document.getElementById(elId).innerHTML=h;
+// ─── INIT STATIC CHARTS ──────────────────────────────────────
+stackedBarLine('c1r',M,arr(totRev,nrPct,(v,i,p)=>v*p/100),'New',arr(totRev,rrPct,(v,i,p)=>v*p/100),'Repeat',totRev,COLORS.line,fL);
+stackedBarLine('c1p',M,arr(totPur,npPct,(v,i,p)=>v*p/100),'New',arr(totPur,rpPct,(v,i,p)=>v*p/100),'Repeat',totPur,COLORS.line);
+
+stackedBarLine3('c2r',M,wRev,'Web',iRev,'iOS',aRev,'Android',totRev,COLORS.web,COLORS.ios,COLORS.and,fL);
+stackedBarLine3('c2p',M,wPur,'Web',iPur,'iOS',aPur,'Android',totPur,COLORS.web,COLORS.ios,COLORS.and);
+
+groupedTrendChart('c3r',M,
+  arr(wRev,nwrP,(v,i,p)=>v*p/100),arr(wRev,rwrP,(v,i,p)=>v*p/100),
+  arr(iRev,nirP,(v,i,p)=>v*p/100),arr(iRev,rirP,(v,i,p)=>v*p/100),
+  arr(aRev,narP,(v,i,p)=>v*p/100),arr(aRev,rarP,(v,i,p)=>v*p/100),
+  'Web','iOS','Android',COLORS.web,COLORS.ios,COLORS.and,true);
+
+groupedTrendChart('c3p',M,
+  arr(wPur,nwpP,(v,i,p)=>v*p/100),arr(wPur,rwpP,(v,i,p)=>v*p/100),
+  arr(iPur,nipP,(v,i,p)=>v*p/100),arr(iPur,ripP,(v,i,p)=>v*p/100),
+  arr(aPur,napP,(v,i,p)=>v*p/100),arr(aPur,rapP,(v,i,p)=>v*p/100),
+  'Web','iOS','Android',COLORS.web,COLORS.ios,COLORS.and,false);
+
+// ─── DYNAMIC SESSION CHARTS ───────────────────────────────────
+let c4r_inst,c4p_inst,c5r_inst,c5p_inst;
+let curFilter='total';
+
+function getSessionData(filter,isRev){
+  if(filter==='total'){
+    return isRev?
+      {grp:gRev,nGrp:ngrP,rGrp:rgrP,off:oRev,nOff:norP,rOff:rorP,on1:xRev,nOn1:nxrP,rOn1:rxrP,tot:totRev}:
+      {grp:gPur,nGrp:ngpP,rGrp:rgpP,off:oPur,nOff:nopP,rOff:ropP,on1:xPur,nOn1:nxpP,rOn1:rxpP,tot:totPur};
   }
-  buildTable('mxRev',true);
-  buildTable('mxRpt',false);
+  if(filter==='web'){
+    const gt=gwRev.map((v,i)=>v+owRev[i]+xwRev[i]);
+    const gpt=gwPur.map((v,i)=>v+owPur[i]+xwPur[i]);
+    return isRev?
+      {grp:gwRev,nGrp:ngwrP,rGrp:rgwrP,off:owRev,nOff:nowrP,rOff:rowrP,on1:xwRev,nOn1:nxwrP,rOn1:rxwrP,tot:gt}:
+      {grp:gwPur,nGrp:ngwpP,rGrp:rgwpP,off:owPur,nOff:nowpP,rOff:rowpP,on1:xwPur,nOn1:nxwpP,rOn1:rxwpP,tot:gpt};
+  }
+  if(filter==='ios'){
+    const gt=giRev.map((v,i)=>v+oiRev[i]+xiRev[i]);
+    const gpt=giPur.map((v,i)=>v+oiPur[i]+xiPur[i]);
+    return isRev?
+      {grp:giRev,nGrp:ngirP,rGrp:rgirP,off:oiRev,nOff:noiP,rOff:roiP,on1:xiRev,nOn1:nxiP,rOn1:rxiP,tot:gt}:
+      {grp:giPur,nGrp:ngipP,rGrp:rgipP,off:oiPur,nOff:noiPP,rOff:roiPP,on1:xiPur,nOn1:nxipP,rOn1:rxipP,tot:gpt};
+  }
+  if(filter==='android'){
+    const gt=gaRev.map((v,i)=>v+oaRev[i]+xaRev[i]);
+    const gpt=gaPur.map((v,i)=>v+oaPur[i]+xaPur[i]);
+    return isRev?
+      {grp:gaRev,nGrp:ngarP,rGrp:rgarP,off:oaRev,nOff:noaP,rOff:roaP,on1:xaRev,nOn1:nxaP,rOn1:rxaP,tot:gt}:
+      {grp:gaPur,nGrp:ngapP,rGrp:rgapP,off:oaPur,nOff:[],rOff:[],on1:xaPur,nOn1:nxapP,rOn1:rxapP,tot:gpt};
+  }
+  if(filter==='app'){
+    const grpApp=giRev.map((v,i)=>v+gaRev[i]);
+    const offApp=oiRev.map((v,i)=>v+oaRev[i]);
+    const on1App=xiRev.map((v,i)=>v+xaRev[i]);
+    const gt=grpApp.map((v,i)=>v+offApp[i]+on1App[i]);
+    const nGrpA=grpApp.map((v,i)=>{const r=giRev[i]*ngirP[i]/100+gaRev[i]*ngarP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+    const rGrpA=grpApp.map((v,i)=>{const r=giRev[i]*rgirP[i]/100+gaRev[i]*rgarP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+    const nOffA=offApp.map((v,i)=>{const r=oiRev[i]*noiP[i]/100+oaRev[i]*noaP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+    const rOffA=offApp.map((v,i)=>{const r=oiRev[i]*roiP[i]/100+oaRev[i]*roaP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+    const nOn1A=on1App.map((v,i)=>{const r=xiRev[i]*nxiP[i]/100+xaRev[i]*nxaP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+    const rOn1A=on1App.map((v,i)=>{const r=xiRev[i]*rxiP[i]/100+xaRev[i]*rxaP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+
+    const grpPApp=giPur.map((v,i)=>v+gaPur[i]);
+    const offPApp=oiPur.map((v,i)=>v+oaPur[i]);
+    const on1PApp=xiPur.map((v,i)=>v+xaPur[i]);
+    const gpt=grpPApp.map((v,i)=>v+offPApp[i]+on1PApp[i]);
+    const nGrpPA=grpPApp.map((v,i)=>{const r=giPur[i]*ngipP[i]/100+gaPur[i]*ngapP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+    const rGrpPA=grpPApp.map((v,i)=>{const r=giPur[i]*rgipP[i]/100+gaPur[i]*rgapP[i]/100;return v?+(r/v*100).toFixed(1):0;});
+
+    return isRev?
+      {grp:grpApp,nGrp:nGrpA,rGrp:rGrpA,off:offApp,nOff:nOffA,rOff:rOffA,on1:on1App,nOn1:nOn1A,rOn1:rOn1A,tot:gt}:
+      {grp:grpPApp,nGrp:nGrpPA,rGrp:rGrpPA,off:offPApp,nOff:[],rOff:[],on1:on1PApp,nOn1:[],rOn1:[],tot:gpt};
+  }
 }
 
-// ── SECTIONS 4 & 5 ───────────────────────────
-function renderSessions(plat){
-  const sdR=getSessionData(R,plat);
-  const sdP=getSessionData(P,plat);
-  const lbl={total:'All Platforms',web:'Web',app:'App (iOS + Android)',ios:'iOS',android:'Android'};
-  const l=`(${lbl[plat]})`;
-  document.getElementById('plbl4').textContent=l;
-  document.getElementById('plbl5').textContent=l;
+function buildSessionCharts(filter){
+  if(c4r_inst){c4r_inst.destroy();c4p_inst.destroy();c5r_inst.destroy();c5p_inst.destroy();}
 
-  // Section 4: 3-way stacked
-  make3Way('c4r',sdR.gr,sdR.of,sdR.oo,[C.grp,C.off,C.oo],['Group','Offline','1on1'],true);
-  make3Way('c4p',sdP.gr,sdP.of,sdP.oo,[C.grp,C.off,C.oo],['Group','Offline','1on1'],false);
+  const dR=getSessionData(filter,true);
+  const dP=getSessionData(filter,false);
 
-  // Section 5: grouped stacked + trendlines
-  const sGrR=[
-    {label:'Group',  t:sdR.gr.t, np:sdR.gr.np},
-    {label:'Offline',t:sdR.of.t, np:sdR.of.np},
-    {label:'1on1',   t:sdR.oo.t, np:sdR.oo.np}
-  ];
-  const sGrP=[
-    {label:'Group',  t:sdP.gr.t, np:sdP.gr.np},
-    {label:'Offline',t:sdP.of.t, np:sdP.of.np},
-    {label:'1on1',   t:sdP.oo.t, np:sdP.oo.np}
-  ];
-  const sCl=[{n:C.grp,r:C.grpL},{n:C.off,r:C.offL},{n:C.oo,r:C.ooL}];
-  makeGroupedStack('c5r',sGrR,sCl,[C.grp,C.off,C.oo],true);
-  makeGroupedStack('c5p',sGrP,sCl,[C.grp,C.off,C.oo],false);
+  c4r_inst=stackedBarLine3('c4r',M,dR.grp,'Group',dR.off,'Offline',dR.on1,'1-on-1',dR.tot,COLORS.grp,COLORS.off,COLORS.on1,fL);
+  c4p_inst=stackedBarLine3('c4p',M,dP.grp,'Group',dP.off,'Offline',dP.on1,'1-on-1',dP.tot,COLORS.grp,COLORS.off,COLORS.on1);
+
+  c5r_inst=groupedTrendChart('c5r',M,
+    dR.grp.map((v,i)=>v*dR.nGrp[i]/100),dR.grp.map((v,i)=>v*dR.rGrp[i]/100),
+    dR.off.map((v,i)=>v*dR.nOff[i]/100),dR.off.map((v,i)=>v*dR.rOff[i]/100),
+    dR.on1.map((v,i)=>v*dR.nOn1[i]/100),dR.on1.map((v,i)=>v*dR.rOn1[i]/100),
+    'Group','Offline','1-on-1',COLORS.grp,COLORS.off,COLORS.on1,true);
+
+  const safePct=(arr,fallback)=>arr&&arr.length?arr:fallback;
+  const nOP=safePct(dP.nOff,ropP.map(()=>0));
+  const rOP=safePct(dP.rOff,ropP.map(()=>0));
+  const nX1P=safePct(dP.nOn1,rxpP.map(()=>0));
+  const rX1P=safePct(dP.rOn1,rxpP.map(()=>0));
+
+  c5p_inst=groupedTrendChart('c5p',M,
+    dP.grp.map((v,i)=>v*dP.nGrp[i]/100),dP.grp.map((v,i)=>v*dP.rGrp[i]/100),
+    dP.off.map((v,i)=>v*nOP[i]/100),dP.off.map((v,i)=>v*rOP[i]/100),
+    dP.on1.map((v,i)=>v*nX1P[i]/100),dP.on1.map((v,i)=>v*rX1P[i]/100),
+    'Group','Offline','1-on-1',COLORS.grp,COLORS.off,COLORS.on1,false);
 }
 
-// ── FILTER HANDLER ────────────────────────────
-function applyFilter(btn){
+function setFilter(f, btn){
+  curFilter=f;
   document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  renderSessions(btn.dataset.p);
+  buildSessionCharts(f);
 }
 
-// ── INIT ─────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{
-  renderKPIs();
+buildSessionCharts('total');
 
-  // Section 1
-  makeSimpleStack('c1r',R.total,true);
-  makeSimpleStack('c1p',P.total,false);
+// ─── MATRIX ──────────────────────────────────────────────────
+function buildMatrix(){
+  const sessions=['Group','Offline','1-on-1'];
+  const platforms=['Web','iOS','Android'];
 
-  // Section 2
-  make3Way('c2r',R.web,R.ios,R.android,[C.web,C.ios,C.and],['Web','iOS','Android'],true);
-  make3Way('c2p',P.web,P.ios,P.android,[C.web,C.ios,C.and],['Web','iOS','Android'],false);
+  // Rev data [platform][session]
+  const revData=[
+    [gwRev,owRev,xwRev],
+    [giRev,oiRev,xiRev],
+    [gaRev,oaRev,xaRev]
+  ];
+  const repPctData=[
+    [rgwrP,rowrP,rxwrP],
+    [rgirP,roiP,rxiP],
+    [rgarP,roaP,rxaP]
+  ];
 
-  // Section 3
-  const pGrR=[{label:'Web',t:R.web.t,np:R.web.np},{label:'iOS',t:R.ios.t,np:R.ios.np},{label:'Android',t:R.android.t,np:R.android.np}];
-  const pGrP=[{label:'Web',t:P.web.t,np:P.web.np},{label:'iOS',t:P.ios.t,np:P.ios.np},{label:'Android',t:P.android.t,np:P.android.np}];
-  const pCl=[{n:C.web,r:C.webL},{n:C.ios,r:C.iosL},{n:C.and,r:C.andL}];
-  makeGroupedStack('c3r',pGrR,pCl,[C.web,C.ios,C.and],true);
-  makeGroupedStack('c3p',pGrP,pCl,[C.web,C.ios,C.and],false);
+  const totRevAll=sum(totRev);
 
-  // Sections 4 & 5
-  renderSessions('total');
+  // Build revenue matrix
+  const mxRev=document.getElementById('mx-rev');
+  const mxRep=document.getElementById('mx-rep');
 
-  // Matrix
-  renderMatrix();
-});
+  // compute cumulative values
+  const cellRev=[], cellRepPct=[];
+  let maxRev=0;
+  platforms.forEach((p,pi)=>{
+    cellRev.push([]); cellRepPct.push([]);
+    sessions.forEach((s,si)=>{
+      const revArr=revData[pi][si];
+      const repArr=repPctData[pi][si];
+      const totV=sum(revArr);
+      const repV=sum(revArr.map((v,i)=>v*repArr[i]/100));
+      cellRev[pi].push(totV);
+      cellRepPct[pi].push(totV?+(repV/totV*100).toFixed(1):0);
+      if(totV>maxRev) maxRev=totV;
+    });
+  });
+
+  function heatColor(val,max,green){
+    const t=Math.min(val/max,1);
+    if(green) return `rgba(16,185,129,${0.1+t*0.5})`;
+    return `rgba(59,130,246,${0.1+t*0.5})`;
+  }
+
+  const maxRep=Math.max(...cellRepPct.flat().filter(v=>v>0));
+
+  let h1=`<tr><th class="rh">Platform / Session</th>${sessions.map(s=>`<th>${s}</th>`).join('')}</tr>`;
+  platforms.forEach((p,pi)=>{
+    h1+=`<tr><td class="rl">${p}</td>`;
+    sessions.forEach((s,si)=>{
+      const v=cellRev[pi][si];
+      const bg=heatColor(v,maxRev,false);
+      h1+=`<td style="background:${bg}"><div class="cv">${fL(v)}</div><div class="cs">${(v/totRevAll*100).toFixed(1)}% of total</div></td>`;
+    });
+    h1+='</tr>';
+  });
+  mxRev.innerHTML=h1;
+
+  let h2=`<tr><th class="rh">Platform / Session</th>${sessions.map(s=>`<th>${s}</th>`).join('')}</tr>`;
+  platforms.forEach((p,pi)=>{
+    h2+=`<tr><td class="rl">${p}</td>`;
+    sessions.forEach((s,si)=>{
+      const v=cellRepPct[pi][si];
+      const bg=heatColor(v,maxRep,true);
+      h2+=`<td style="background:${bg}"><div class="cv">${v}%</div><div class="cs">repeat rev</div></td>`;
+    });
+    h2+='</tr>';
+  });
+  mxRep.innerHTML=h2;
+}
+
+buildMatrix();
 </script>
 </body>
 </html>

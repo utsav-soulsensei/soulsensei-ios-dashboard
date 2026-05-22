@@ -590,12 +590,18 @@
   .bench-stat-label { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
   .bench-stat-value { font-size: 20px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
   .bench-stat-detail { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
-  .bench-bar-wrap { position: relative; height: 30px; background: var(--bg-secondary); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
-  .bench-bar-band { position: absolute; top: 0; bottom: 0; background: rgba(55,138,221,0.18); }
-  .bench-bar-band-label { position: absolute; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text-tertiary); white-space: nowrap; pointer-events: none; }
-  .bench-bar-marker { position: absolute; top: 0; bottom: 0; width: 2.5px; background: #0F1014; border-radius: 2px; }
-  .bench-bar-marker::after { content: attr(data-label); position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: var(--text); white-space: nowrap; padding: 0 4px; background: var(--bg); border-radius: 3px; }
-  .bench-bar-tick { position: absolute; top: 100%; margin-top: 1px; font-size: 9.5px; color: var(--text-tertiary); transform: translateX(-50%); white-space: nowrap; }
+  .bench-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; align-items: center; }
+  .bench-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .bench-legend-swatch { display: inline-block; }
+  .bench-legend-swatch.dot { width: 8px; height: 8px; border-radius: 50%; }
+  .bench-legend-swatch.bar { width: 10px; height: 3px; border-radius: 2px; }
+  .bench-legend-swatch.band { width: 18px; height: 10px; border-radius: 3px; background: rgba(55,138,221,0.22); }
+  .bench-bar-wrap { position: relative; height: 22px; background: var(--bg-secondary); border-radius: 6px; overflow: hidden; }
+  .bench-bar-band { position: absolute; top: 0; bottom: 0; background: rgba(55,138,221,0.22); }
+  .bench-bar-marker { position: absolute; top: -2px; bottom: -2px; width: 3px; border-radius: 2px; }
+  .bench-bar-marker.ss { background: #0F1014; }
+  .bench-bar-marker.bench { background: #1d6aae; }
+  .bench-bar-axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-tertiary); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .bench-source { font-size: 10.5px; color: var(--text-tertiary); margin-top: 10px; font-style: italic; }
   .bench-internal { background: var(--bg); border: 0.5px dashed var(--border-md); border-radius: 10px; padding: 14px 16px; }
   .bench-internal-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 12.5px; }
@@ -3770,26 +3776,22 @@ function statusFor(val,lo,hi){
 function statusLabel(s){return s==='above'?'Above benchmark':s==='below'?'Below benchmark':'Within range';}
 
 function renderBenchBar(soulVal,benchVal,benchLo,benchHi,maxX){
-  // Bar shows 0..maxX, blue band = benchLo..benchHi, single benchVal tick, soulSensei marker
   const pct=v=>Math.min(Math.max(v/maxX*100,0),100);
   const bandLeft=pct(benchLo);
   const bandWidth=pct(benchHi)-pct(benchLo);
   const benchMid=pct(benchVal);
   const soulPos=pct(soulVal);
-  const ticks=[0, benchVal, maxX];
-  return `<div class="bench-bar-wrap">
-    <div class="bench-bar-band" style="left:${bandLeft}%;width:${bandWidth}%;"></div>
-    <div class="bench-bar-band-label" style="left:${bandLeft+bandWidth/2}%;transform:translate(-50%,-50%);">band</div>
-    <div class="bench-bar-marker" style="left:${soulPos}%;" data-label="SS ${soulVal.toFixed(2)}%"></div>
-    <div class="bench-bar-marker" style="left:${benchMid}%;background:#378ADD;opacity:0.7;" data-label=""></div>
+  return `<div class="bench-legend">
+    <span class="bench-legend-item"><span class="bench-legend-swatch bar" style="background:#0F1014;"></span><span style="color:var(--text);font-weight:500;">SoulSensei ${soulVal.toFixed(2)}%</span></span>
+    <span class="bench-legend-item"><span class="bench-legend-swatch bar" style="background:#1d6aae;"></span>Benchmark ${benchVal}%</span>
+    <span class="bench-legend-item"><span class="bench-legend-swatch band"></span>Band ${benchLo}%–${benchHi}%</span>
   </div>
-  <div style="position:relative;height:14px;font-size:9.5px;color:var(--text-tertiary);margin-top:2px;">
-    <span class="bench-bar-tick" style="left:0%;transform:translateX(0);">0%</span>
-    <span class="bench-bar-tick" style="left:${pct(benchLo)}%;">${benchLo}%</span>
-    <span class="bench-bar-tick" style="left:${benchMid}%;color:#378ADD;font-weight:500;">${benchVal}% bench</span>
-    <span class="bench-bar-tick" style="left:${pct(benchHi)}%;">${benchHi}%</span>
-    <span class="bench-bar-tick" style="left:100%;transform:translateX(-100%);">${maxX}%</span>
-  </div>`;
+  <div class="bench-bar-wrap">
+    <div class="bench-bar-band" style="left:${bandLeft}%;width:${bandWidth}%;"></div>
+    <div class="bench-bar-marker bench" style="left:${benchMid}%;"></div>
+    <div class="bench-bar-marker ss" style="left:${soulPos}%;"></div>
+  </div>
+  <div class="bench-bar-axis"><span>0%</span><span>${maxX}%</span></div>`;
 }
 
 function renderBenchmarks(){
