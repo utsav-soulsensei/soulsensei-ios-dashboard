@@ -576,6 +576,33 @@
     margin-bottom: 10px;
   }
 
+  /* ── benchmarks tab ── */
+  .bench-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .bench-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .bench-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .bench-status { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 12px; letter-spacing: 0.02em; }
+  .bench-status.above { background: rgba(29,158,117,0.12); color: #0F6E56; }
+  .bench-status.in-range { background: rgba(55,138,221,0.12); color: #1d6aae; }
+  .bench-status.below { background: rgba(216,90,48,0.14); color: #C9472A; }
+  .bench-desc { font-size: 11.5px; color: var(--text-tertiary); margin-bottom: 14px; line-height: 1.5; }
+  .bench-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .bench-stat { background: var(--bg-secondary); border-radius: 8px; padding: 10px 12px; }
+  .bench-stat-label { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .bench-stat-value { font-size: 20px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
+  .bench-stat-detail { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+  .bench-bar-wrap { position: relative; height: 30px; background: var(--bg-secondary); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+  .bench-bar-band { position: absolute; top: 0; bottom: 0; background: rgba(55,138,221,0.18); }
+  .bench-bar-band-label { position: absolute; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text-tertiary); white-space: nowrap; pointer-events: none; }
+  .bench-bar-marker { position: absolute; top: 0; bottom: 0; width: 2.5px; background: #0F1014; border-radius: 2px; }
+  .bench-bar-marker::after { content: attr(data-label); position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: var(--text); white-space: nowrap; padding: 0 4px; background: var(--bg); border-radius: 3px; }
+  .bench-bar-tick { position: absolute; top: 100%; margin-top: 1px; font-size: 9.5px; color: var(--text-tertiary); transform: translateX(-50%); white-space: nowrap; }
+  .bench-source { font-size: 10.5px; color: var(--text-tertiary); margin-top: 10px; font-style: italic; }
+  .bench-internal { background: var(--bg); border: 0.5px dashed var(--border-md); border-radius: 10px; padding: 14px 16px; }
+  .bench-internal-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 12.5px; }
+  .bench-internal-row:last-child { border-bottom: none; }
+  .bench-internal-row .label { color: var(--text-secondary); }
+  .bench-internal-row .value { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 500; }
+
   /* ── features tab ── */
   .feat-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
   .feat-card:hover { background: var(--bg-secondary); }
@@ -670,6 +697,7 @@
     <button class="tab-btn" data-tab="releases" onclick="switchTab('releases')">Releases</button>
     <button class="tab-btn" data-tab="retention" onclick="switchTab('retention')">Retention</button>
     <button class="tab-btn" data-tab="features" onclick="switchTab('features')">Features</button>
+    <button class="tab-btn" data-tab="benchmarks" onclick="switchTab('benchmarks')">Benchmarks</button>
   </nav>
 
   <div id="tab-charts">
@@ -1431,6 +1459,16 @@
     <div id="features-list" style="display:flex;flex-direction:column;gap:16px;margin-top:12px;"></div>
   </div><!-- /tab-features -->
 
+  <div id="tab-benchmarks" style="display:none">
+    <p class="compare-note">SoulSensei Android metrics compared against externally-sourced industry benchmarks. Only metrics with a credible public benchmark are shown here; deeper funnel steps (HP→Listing, Listing→PDP) are listed at the bottom as internal KPIs since no clean public benchmark exists.</p>
+    <div id="bench-list" style="display:flex;flex-direction:column;gap:14px;margin-top:14px;"></div>
+    <div style="margin-top:30px;padding:14px 16px;background:var(--bg-secondary);border-radius:10px;font-size:11px;color:var(--text-tertiary);line-height:1.6;">
+      <div style="font-weight:500;color:var(--text-secondary);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;font-size:10px;">Sources</div>
+      <div>Dynamic Yield — Global eCommerce CR Benchmarks: <span style="color:var(--text-secondary);">marketing.dynamicyield.com/benchmarks/conversion-rate</span></div>
+      <div>Geckoboard — Website Conversion Rate KPI Examples: <span style="color:var(--text-secondary);">geckoboard.com/best-practice/kpi-examples/website-conversion-rate</span></div>
+    </div>
+  </div><!-- /tab-benchmarks -->
+
   <div class="footer">
     <div class="footer-brand">SoulSensei</div>
     <div class="footer-meta">Android Analytics<span class="footer-meta-sep">·</span>data Oct 2025 – May 2026<span class="footer-meta-sep">·</span>refreshed May 22, 2026</div>
@@ -1901,7 +1939,7 @@ function applyRange(){render();}
 
 /* ── tab switching ─────────────────────────────────────────── */
 function _doSwitchTab(tab){
-  ['charts','insights','report','compare','funnels','releases','retention','features'].forEach(t=>
+  ['charts','insights','report','compare','funnels','releases','retention','features','benchmarks'].forEach(t=>
     document.getElementById('tab-'+t).style.display=tab===t?'':'none'
   );
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
@@ -1909,6 +1947,7 @@ function _doSwitchTab(tab){
   if(tab==='releases')renderReleases();
   if(tab==='retention')renderRetention();
   if(tab==='features')renderFeatures();
+  if(tab==='benchmarks')renderBenchmarks();
 }
 function switchTab(tab){
   if(document.startViewTransition){
@@ -3622,6 +3661,160 @@ function renderFeatures(){
 function toggleFeature(idx){
   const card=document.querySelector(`.feat-card[data-feat="${idx}"]`);
   if(card)card.classList.toggle('open');
+}
+
+/* ── benchmarks tab ──────────────────────────────────────────── */
+function avgOf(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+
+function getRecentMonthlyCR(monthsBack){
+  const byMonth={};
+  CR_RAW.forEach(([d,v])=>{
+    const dt=new Date(d);
+    const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+    if(!byMonth[key])byMonth[key]={s:0,n:0};
+    byMonth[key].s+=v;byMonth[key].n++;
+  });
+  const months=Object.keys(byMonth).sort();
+  const recent=months.slice(-monthsBack);
+  const vals=recent.map(k=>byMonth[k].s/byMonth[k].n*100);
+  return {avg:avgOf(vals),monthly:recent.map((k,i)=>({month:k,cr:vals[i]}))};
+}
+
+function getLatestMonthAvgCR(){
+  const {monthly}=getRecentMonthlyCR(1);
+  return monthly[0];
+}
+
+function getHpListingPdpAvg(){
+  const rows=HP_FUNNEL_RAW.slice(-3).filter(r=>r[4]>0);
+  const b=avgOf(rows.map(r=>r[5]))*100;
+  const c=avgOf(rows.map(r=>r[6]))*100;
+  return {hpToList:b,listToPdp:c};
+}
+
+function statusFor(val,lo,hi){
+  if(val>=hi)return 'above';
+  if(val<lo)return 'below';
+  return 'in-range';
+}
+function statusLabel(s){return s==='above'?'Above benchmark':s==='below'?'Below benchmark':'Within range';}
+
+function renderBenchBar(soulVal,benchVal,benchLo,benchHi,maxX){
+  const pct=v=>Math.min(Math.max(v/maxX*100,0),100);
+  const bandLeft=pct(benchLo);
+  const bandWidth=pct(benchHi)-pct(benchLo);
+  const benchMid=pct(benchVal);
+  const soulPos=pct(soulVal);
+  return `<div class="bench-bar-wrap">
+    <div class="bench-bar-band" style="left:${bandLeft}%;width:${bandWidth}%;"></div>
+    <div class="bench-bar-band-label" style="left:${bandLeft+bandWidth/2}%;transform:translate(-50%,-50%);">band</div>
+    <div class="bench-bar-marker" style="left:${soulPos}%;" data-label="SS ${soulVal.toFixed(2)}%"></div>
+    <div class="bench-bar-marker" style="left:${benchMid}%;background:#378ADD;opacity:0.7;" data-label=""></div>
+  </div>
+  <div style="position:relative;height:14px;font-size:9.5px;color:var(--text-tertiary);margin-top:2px;">
+    <span class="bench-bar-tick" style="left:0%;transform:translateX(0);">0%</span>
+    <span class="bench-bar-tick" style="left:${pct(benchLo)}%;">${benchLo}%</span>
+    <span class="bench-bar-tick" style="left:${benchMid}%;color:#378ADD;font-weight:500;">${benchVal}% bench</span>
+    <span class="bench-bar-tick" style="left:${pct(benchHi)}%;">${benchHi}%</span>
+    <span class="bench-bar-tick" style="left:100%;transform:translateX(-100%);">${maxX}%</span>
+  </div>`;
+}
+
+function renderBenchmarks(){
+  const latest=getLatestMonthAvgCR();
+  const trailing3=getRecentMonthlyCR(3).avg;
+  const trailing6=getRecentMonthlyCR(6).avg;
+  const ssCR=latest.cr;
+
+  const cards=[];
+
+  const bench1=2.76; const band1Lo=1.84,band1Hi=3.71;
+  const s1=statusFor(ssCR,band1Lo,band1Hi);
+  cards.push({
+    title:'Overall CR vs Global eCommerce',
+    desc:'SoulSensei\'s page-view-to-purchase conversion rate against the global eCommerce baseline. Benchmark: 2.76% global average, 1.84–3.71% conservative band.',
+    status:s1,
+    statusText:statusLabel(s1),
+    rows:[
+      {label:'SoulSensei Android — '+latest.month,value:ssCR.toFixed(2)+'%',detail:'Latest full month'},
+      {label:'Trailing 3-month avg',value:trailing3.toFixed(2)+'%',detail:'Last 3 months'},
+      {label:'Global eCommerce avg',value:bench1+'%',detail:'Dynamic Yield benchmark'},
+      {label:'Conservative band',value:band1Lo+'%–'+band1Hi+'%',detail:'Geckoboard range'}
+    ],
+    bar:renderBenchBar(ssCR,bench1,band1Lo,band1Hi,6),
+    source:'Sources: Dynamic Yield, Geckoboard. Direct external benchmarks.'
+  });
+
+  const bench2=1.78;
+  const s2=ssCR>=bench2*1.05?'above':ssCR<bench2*0.95?'below':'in-range';
+  cards.push({
+    title:'Overall CR vs APAC eCommerce',
+    desc:'Regional comparator for the India context. APAC average runs lower than the global figure.',
+    status:s2,
+    statusText:statusLabel(s2),
+    rows:[
+      {label:'SoulSensei Android — '+latest.month,value:ssCR.toFixed(2)+'%',detail:'Latest full month'},
+      {label:'APAC eCommerce avg',value:bench2+'%',detail:'Dynamic Yield regional'},
+      {label:'Δ vs APAC',value:((ssCR-bench2)/bench2*100).toFixed(1)+'%',detail:ssCR>=bench2?'Better':'Worse'},
+      {label:'Trailing 6-month avg',value:trailing6.toFixed(2)+'%',detail:'Last 6 months'}
+    ],
+    bar:renderBenchBar(ssCR,bench2,bench2*0.85,bench2*1.15,6),
+    source:'Source: Dynamic Yield APAC benchmark. Direct external.'
+  });
+
+  const beautyB=4.3, petB=4.12, wellnessAvg=(beautyB+petB)/2;
+  const s3=ssCR>=wellnessAvg*0.95?'above':'below';
+  cards.push({
+    title:'Overall CR vs Wellness-analog Categories',
+    desc:'Aspirational comparator — Beauty & Personal Care (4.3%) and Pet Care & Veterinary Services (4.12%) are the closest wellness-style categories with published benchmarks.',
+    status:s3==='above'?'in-range':s3,
+    statusText:s3==='above'?'On par with wellness band':'Below wellness band',
+    rows:[
+      {label:'SoulSensei Android — '+latest.month,value:ssCR.toFixed(2)+'%',detail:'Latest full month'},
+      {label:'Beauty & Personal Care',value:beautyB+'%',detail:'Dynamic Yield category'},
+      {label:'Pet Care & Veterinary',value:petB+'%',detail:'Dynamic Yield category'},
+      {label:'Gap to wellness avg ('+wellnessAvg.toFixed(2)+'%)',value:((ssCR-wellnessAvg)/wellnessAvg*100).toFixed(0)+'%',detail:ssCR>=wellnessAvg?'Above':'Below'}
+    ],
+    bar:renderBenchBar(ssCR,wellnessAvg,petB,beautyB,6),
+    source:'Source: Dynamic Yield category benchmarks. Aspirational targets, not strict baseline.'
+  });
+
+  const html=cards.map(c=>`<div class="bench-card">
+    <div class="bench-head">
+      <span class="bench-title">${c.title}</span>
+      <span class="bench-status ${c.status}">${c.statusText}</span>
+    </div>
+    <div class="bench-desc">${c.desc}</div>
+    ${c.bar}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px;">
+      ${c.rows.map(r=>`<div class="bench-stat">
+        <div class="bench-stat-label">${r.label}</div>
+        <div class="bench-stat-value">${r.value}</div>
+        <div class="bench-stat-detail">${r.detail}</div>
+      </div>`).join('')}
+    </div>
+    <div class="bench-source">${c.source}</div>
+  </div>`).join('');
+
+  const hp=getHpListingPdpAvg();
+  const internalHtml=`<div class="bench-card bench-internal" style="margin-top:6px;">
+    <div class="bench-head">
+      <span class="bench-title">Internal KPIs (no public benchmark)</span>
+      <span class="bench-status in-range">Track vs own history</span>
+    </div>
+    <div class="bench-desc">These deeper funnel steps don't have a clean published industry benchmark — they're typically internal-only. Compare against SoulSensei's own historical baseline rather than an external number.</div>
+    <div class="bench-internal-row">
+      <span class="label">HP → Listing page (Android, last 3 mo avg)</span>
+      <span class="value">${hp.hpToList.toFixed(1)}%</span>
+    </div>
+    <div class="bench-internal-row">
+      <span class="label">Listing → PDP (Android, last 3 mo avg)</span>
+      <span class="value">${hp.listToPdp.toFixed(1)}%</span>
+    </div>
+    <div class="bench-source">Use the Funnels tab to track these step rates against SoulSensei\'s own historical trend.</div>
+  </div>`;
+
+  document.getElementById('bench-list').innerHTML=html+internalHtml;
 }
 
 /* ── insights builder ──────────────────────────────────────── */
