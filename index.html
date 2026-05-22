@@ -77,45 +77,10 @@
     background: linear-gradient(90deg, transparent 0%, rgba(136,135,128,0.25) 25%, rgba(136,135,128,0.25) 75%, transparent 100%);
   }
 
-  .brand-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .brand-icon {
-    width: 28px;
+  .brand-logo {
     height: 28px;
-    border-radius: 7px;
-    background: var(--text);
-    color: var(--bg);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.04em;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .brand-icon::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #1D9E75;
-    box-shadow: 0 0 0 1.5px var(--text);
-  }
-  .brand-mark {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    color: var(--text);
-    text-transform: uppercase;
-    line-height: 1;
-    font-feature-settings: "ss01", "ss02";
+    width: auto;
+    display: block;
   }
   .brand-divider {
     width: 28px;
@@ -665,10 +630,7 @@
 
   <div class="header">
     <div class="header-left">
-      <div class="brand-row">
-        <span class="brand-icon">S</span>
-        <span class="brand-mark">SoulSensei</span>
-      </div>
+      <img src="soul-sensei-logo.svg" alt="SoulSensei" class="brand-logo">
       <div class="brand-divider"></div>
       <div class="brand-context">
         <span class="brand-subtitle">iOS Analytics</span>
