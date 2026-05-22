@@ -464,6 +464,27 @@
     margin-bottom: 10px;
   }
 
+  /* ── features tab ── */
+  .feat-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .feat-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .feat-title { font-size: 15px; font-weight: 500; color: var(--text); }
+  .feat-pill { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 12px; letter-spacing: 0.02em; text-transform: uppercase; }
+  .feat-pill.area { background: rgba(55,138,221,0.12); color: #1d6aae; }
+  .feat-pill.priority-high { background: rgba(201,71,42,0.12); color: #C9472A; }
+  .feat-pill.priority-med { background: rgba(186,117,23,0.14); color: #BA7517; }
+  .feat-pill.priority-low { background: rgba(136,135,128,0.16); color: #666; }
+  .feat-summary { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.55; }
+  .feat-section-title { font-size: 10px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin: 12px 0 6px; }
+  .feat-evidence { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 6px; }
+  .feat-evidence-item { background: var(--bg-secondary); border-radius: 8px; padding: 8px 10px; border-left: 2px solid #378ADD; }
+  .feat-evidence-title { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .feat-evidence-body { font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; }
+  .feat-evidence-link { font-size: 10.5px; color: var(--text-tertiary); margin-top: 4px; font-style: italic; }
+  .feat-impact { background: rgba(29,158,117,0.08); border-left: 2px solid #1D9E75; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--text); margin-bottom: 6px; }
+  .feat-risks { background: rgba(186,117,23,0.06); border-left: 2px solid #BA7517; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--text-secondary); }
+  .feat-risks ul, .feat-impact ul { margin: 4px 0 0 0; padding-left: 18px; }
+  .feat-risks li, .feat-impact li { margin-bottom: 2px; }
+
   /* ── funnel viz ── */
   .funnel-summary { background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
   .funnel-summary-title { color: var(--text-tertiary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
@@ -525,6 +546,7 @@
     <button class="tab-btn" data-tab="funnels" onclick="switchTab('funnels')">Funnels</button>
     <button class="tab-btn" data-tab="releases" onclick="switchTab('releases')">Releases</button>
     <button class="tab-btn" data-tab="retention" onclick="switchTab('retention')">Retention</button>
+    <button class="tab-btn" data-tab="features" onclick="switchTab('features')">Features</button>
   </nav>
 
   <div id="tab-charts">
@@ -1266,6 +1288,11 @@
     </div>
   </div><!-- /tab-retention -->
 
+  <div id="tab-features" style="display:none">
+    <p class="compare-note">Features under consideration, each justified by what the dashboard data already shows. Open the linked tabs for the underlying evidence.</p>
+    <div id="features-list" style="display:flex;flex-direction:column;gap:16px;margin-top:12px;"></div>
+  </div><!-- /tab-features -->
+
   <div class="footer">SoulSensei Android · data Oct 2025 – May 2026 · built with Chart.js</div>
 
 </div>
@@ -1732,13 +1759,14 @@ function applyRange(){render();}
 
 /* ── tab switching ─────────────────────────────────────────── */
 function _doSwitchTab(tab){
-  ['charts','insights','report','compare','funnels','releases','retention'].forEach(t=>
+  ['charts','insights','report','compare','funnels','releases','retention','features'].forEach(t=>
     document.getElementById('tab-'+t).style.display=tab===t?'':'none'
   );
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(tab==='funnels'){renderHpFunnel();renderFunnels();renderPaidFunnel();renderOneFunnel();}
   if(tab==='releases')renderReleases();
   if(tab==='retention')renderRetention();
+  if(tab==='features')renderFeatures();
 }
 function switchTab(tab){
   if(document.startViewTransition){
@@ -3143,6 +3171,86 @@ function renderRetention(){
   } else if(retentionView==='ltv'){
     renderLtvView();
   }
+}
+
+/* ── features tab ──────────────────────────────────────────── */
+const FEATURES=[
+  {
+    title:'Homepage Personalisation',
+    area:'Discovery / HP',
+    priority:'high',
+    summary:'Tailor the home page differently for (a) iOS vs Android and (b) New vs Repeat buyers, instead of a single one-size HP. Today\'s HP is the same regardless of platform or buyer history.',
+    evidence:[
+      {
+        title:'HP→Listing rate diverges by platform',
+        body:'iOS HP→Listing in May 2026: 37.6%. Android in May 2026: 42.4%. Trajectories also differ: Android climbed from 13% (Dec 2025) to 42%, iOS held a tighter 30–38% range. Different starting points + different click affinities suggest different ideal HP layouts.',
+        link:'See Funnels → HP→Listing→PDP'
+      },
+      {
+        title:'Listing→PDP is the more stable step',
+        body:'Listing→PDP sits in a tight 44–56% band across all months on both platforms. Once a user reaches a listing, conversion to PDP is predictable. The variability is upstream — at the HP — which is where personalisation lever sits.',
+        link:'See Funnels → HP→Listing→PDP'
+      },
+      {
+        title:'New buyer share is collapsing in May',
+        body:'iOS new buyer %: Jan 46% → Apr 45% → May 43%. Android: Jan 55% → Apr 50% → May 39%. The HP is doing well at catalog discovery but is failing to convert new visitors at the rate it did 6 months ago. A new-visitor-specific HP (first-time tour, top-converting content, social proof) is the natural intervention.',
+        link:'See Charts → New % line over time'
+      },
+      {
+        title:'Repeat buyers are now the majority',
+        body:'iOS repeat share: Apr 55%, May 57%. Android repeat share: Apr 50%, May 61%. The single biggest user group on the HP is repeat buyers — but they currently see the same content as newcomers, even though their next-best action is fundamentally different (continue last course / book next 1:1, not "discover the platform").',
+        link:'See Insights → Buyers section'
+      },
+      {
+        title:'LTV is dropping with cohort size',
+        body:'iOS Apr 2026 cohort LTV: ₹2,464 (vs avg ₹3,837). Android Apr 2026 LTV: ₹1,802 (vs avg ₹3,448). Newer users are worth less, suggesting the current HP isn\'t funnelling them to high-LTV products. Personalised "you might also like" type rails would directly target this.',
+        link:'See Retention → LTV view'
+      },
+      {
+        title:'Past personalisation releases hint at the lever',
+        body:'iOS v6.8 (Oct 25, 2025) "Home page personalisation" was tagged Low impact, but Android v0.3.6 (Oct 26, 2025) tagged personalisation + recommended tag High impact. Without an A/B framework we can\'t isolate the lift — but the platform divergence in HP→Listing post-Oct hints something happened on Android specifically.',
+        link:'See Releases → filter by High impact'
+      }
+    ],
+    impact:[
+      'Expected primary lever: lift HP→Listing rate for repeat users (currently averaged with new buyers, masking under-performance for repeat segment specifically).',
+      'Expected secondary lever: arrest the falling new-buyer share by reserving above-fold real estate for highest-converting beginner content.',
+      'Rough size: if repeat-buyer HP→Listing climbs by 5pp on iOS+Android combined, that\'s ~700 extra listing visits/month at current traffic, which compounds through the rest of the funnel.'
+    ],
+    risks:[
+      'No segment-level funnel data today — we can\'t directly measure new vs repeat HP→Listing rates. Build the measurement before rolling out, or you won\'t know whether it worked.',
+      'May 2026 Android Paid funnel collapse (OTP→Login 84% → 20%) means current Android metrics are noisy. Wait at least one clean post-fix month before reading Android personalisation results.',
+      'Personalisation hides catalog breadth from repeat users → can reduce serendipitous discovery of unrelated categories. Reserve a "discovery rail" slot regardless of personalisation.'
+    ]
+  }
+];
+
+function renderFeatures(){
+  const wrap=document.getElementById('features-list');
+  wrap.innerHTML=FEATURES.map(f=>{
+    const priorityClass='priority-'+(f.priority==='high'?'high':f.priority==='medium'?'med':'low');
+    const evHtml=f.evidence.map(e=>`<div class="feat-evidence-item">
+      <div class="feat-evidence-title">${e.title}</div>
+      <div class="feat-evidence-body">${e.body}</div>
+      ${e.link?`<div class="feat-evidence-link">→ ${e.link}</div>`:''}
+    </div>`).join('');
+    const impactHtml=f.impact.map(i=>`<li>${i}</li>`).join('');
+    const risksHtml=f.risks.map(r=>`<li>${r}</li>`).join('');
+    return `<div class="feat-card">
+      <div class="feat-head">
+        <span class="feat-title">${f.title}</span>
+        <span class="feat-pill area">${f.area}</span>
+        <span class="feat-pill ${priorityClass}">${f.priority}</span>
+      </div>
+      <div class="feat-summary">${f.summary}</div>
+      <div class="feat-section-title">Data behind it</div>
+      <div class="feat-evidence">${evHtml}</div>
+      <div class="feat-section-title">Expected impact</div>
+      <div class="feat-impact"><ul>${impactHtml}</ul></div>
+      <div class="feat-section-title">Risks &amp; open questions</div>
+      <div class="feat-risks"><ul>${risksHtml}</ul></div>
+    </div>`;
+  }).join('');
 }
 
 /* ── insights builder ──────────────────────────────────────── */
