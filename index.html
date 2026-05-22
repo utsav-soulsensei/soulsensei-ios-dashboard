@@ -1145,6 +1145,7 @@
         <button id="ret-metric-revenue" onclick="setRetentionMetric('revenue')" style="padding:6px 12px;border:0;background:var(--bg-secondary);color:var(--text);font-size:12px;cursor:pointer;">iOS Rev</button>
         <button id="ret-metric-users" onclick="setRetentionMetric('users')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">iOS Users</button>
         <button id="ret-metric-web" onclick="setRetentionMetric('web')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">Web Rev</button>
+        <button id="ret-metric-webusers" onclick="setRetentionMetric('webusers')" style="padding:6px 12px;border:0;border-left:0.5px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;">Web Users</button>
       </div>
       <label style="font-size:12px;color:var(--text-secondary);margin-left:6px;">View:</label>
       <div style="display:inline-flex;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;">
@@ -2630,6 +2631,23 @@ const USERS_RETENTION_RAW=[
 
 let retentionMetric='revenue';
 
+/* Web cohort users repeat — same shape, cohort dates corrected. */
+const WEB_USERS_RETENTION_RAW=[
+  ['Apr 2025',639,9.1,10.6,6.6,6.3,4.9,4.9,5.6,3.9,3.1,3.9,3.1,3.4,4.9,0.0],
+  ['May 2025',1113,6.8,11.3,6.6,6.4,8.2,6.4,6.9,5.2,6.2,3.1,4.2,3.8,0.0,0.0],
+  ['Jun 2025',1381,8.9,10.1,8.5,7.2,7.4,6.9,4.7,5.1,5.5,4.3,4.9,0.0,0.0,0.0],
+  ['Jul 2025',1254,10.6,11.7,7.8,6.9,6.6,5.6,5.3,3.7,4.0,4.3,null,null,null,null],
+  ['Aug 2025',1513,8.8,8.7,9.1,7.2,4.3,5.0,2.7,3.2,4.2,null,null,null,null,null],
+  ['Sep 2025',1281,10.6,12.0,8.9,5.1,5.4,5.1,5.0,4.4,null,null,null,null,null,null],
+  ['Oct 2025',1886,10.4,8.2,5.2,4.6,3.8,4.1,5.0,null,null,null,null,null,null,null],
+  ['Nov 2025',1830,6.8,6.3,5.2,3.9,4.0,3.7,null,null,null,null,null,null,null,null],
+  ['Dec 2025',1192,6.2,8.1,5.0,3.9,3.9,null,null,null,null,null,null,null,null,null],
+  ['Jan 2026',1578,11.8,6.9,4.9,3.9,null,null,null,null,null,null,null,null,null,null],
+  ['Feb 2026',1233,17.2,6.8,4.1,null,null,null,null,null,null,null,null,null,null,null],
+  ['Mar 2026',1287,13.9,9.6,null,null,null,null,null,null,null,null,null,null,null,null],
+  ['Apr 2026',1668,10.9,null,null,null,null,null,null,null,null,null,null,null,null,null]
+];
+
 /* Web cohort revenue repeat — same shape as iOS/Android. Cohort dates corrected:
    the first 9 rows in source were labelled "26" but are 2025 cohorts. */
 const WEB_RETENTION_RAW=[
@@ -2686,7 +2704,7 @@ let retentionVisibleMsince={};
 
 function setRetentionMetric(m){
   retentionMetric=m;
-  ['revenue','users','web'].forEach(x=>{
+  ['revenue','users','web','webusers'].forEach(x=>{
     const b=document.getElementById('ret-metric-'+x);
     b.style.background=m===x?'var(--bg-secondary)':'var(--bg)';
     b.style.color=m===x?'var(--text)':'var(--text-secondary)';
@@ -2699,15 +2717,17 @@ function setRetentionMetric(m){
 function getRetentionData(){
   if(retentionMetric==='users')return USERS_RETENTION_RAW;
   if(retentionMetric==='web')return WEB_RETENTION_RAW;
+  if(retentionMetric==='webusers')return WEB_USERS_RETENTION_RAW;
   return RETENTION_RAW;
 }
 function formatFO(v){
-  if(retentionMetric==='users')return v.toLocaleString()+' users';
+  if(retentionMetric==='users'||retentionMetric==='webusers')return v.toLocaleString()+' users';
   if(retentionMetric==='web')return '₹'+(v/100000).toFixed(1)+'L';
   return '₹'+(v/1000).toFixed(1)+'k';
 }
 function foColLabel(){
-  if(retentionMetric==='users')return 'First-Order Users';
+  if(retentionMetric==='users')return 'First-Order Users (iOS)';
+  if(retentionMetric==='webusers')return 'First-Order Users (Web)';
   if(retentionMetric==='web')return 'First-Order Rev (Web)';
   return 'First-Order Rev';
 }
@@ -2889,7 +2909,10 @@ function renderRetentionSummary(){
   let totalFOLabel,totalFOTitle;
   if(retentionMetric==='users'){
     totalFOLabel=totalFO.toLocaleString()+' users';
-    totalFOTitle='Cumulative FO users';
+    totalFOTitle='Cumulative FO users (iOS)';
+  } else if(retentionMetric==='webusers'){
+    totalFOLabel=totalFO.toLocaleString()+' users';
+    totalFOTitle='Cumulative FO users (Web)';
   } else if(retentionMetric==='web'){
     totalFOLabel='₹'+(totalFO/10000000).toFixed(2)+'Cr';
     totalFOTitle='Cumulative FO revenue (Web)';
