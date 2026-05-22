@@ -661,6 +661,64 @@
 </div>
 
 <div class="ins-section">
+  <div class="ins-section-title">Deep-dive findings (funnel · releases · LTV · retention)</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">Finding</th>
+        <th style="width:22%">What the data shows</th>
+        <th style="width:22%">Scale / magnitude</th>
+        <th style="width:38%">So what</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-warn">Funnel</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Auth is the biggest leak</span></td>
+        <td>On the Paid Course PDP, logged-in users convert at ~2× the rate of logged-out users — the OTP + Login steps are the single largest deficit in the funnel.</td>
+        <td class="num">Logged-in PDP→Purchase: ~5.1% avg (last 6 mo)<br>Logged-out PDP→Purchase: ~2.6% avg<br><span class="arrow-up">↑ ~2×</span> the conversion rate</td>
+        <td>Anything that pre-authenticates more visitors (silent login, persistent sessions, social login, biometric quick-auth) is the highest-leverage CR lever available. Reducing the logged-out share by even 20 pp could lift overall paid CR by ~20%.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Release impact</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Apr ROAS recovery</span></td>
+        <td>The Apr→May ROAS recovery (0.94× → 1.21× → 1.52×) maps tightly to v10 (Apr 24, ATT removed → temporary disruption), v10.1 (Apr 27, JWT refresh fix → fewer silent logouts), and v10.2 (Apr 28, ATT rolled back).</td>
+        <td class="num">Mar avg: 0.94×<br>Apr avg: 1.21×<br>May avg: 1.52×<br>v10.1 + v10.2 are likely causal</td>
+        <td>The recovery is partly attribution-fix, not market improvement. The JWT fix likely shifted users into the higher-CR logged-in path. Don't assume the trend is purely organic — it may flatten when those one-time gains complete.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Release impact</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Listing redesign</span></td>
+        <td>v8.4 (Jan 7) "Listing pages redesign" lifted Listing → PDP rate from 52.3% (Jan) to 56.1% (Feb), and the gain has stuck (48–56% range since).</td>
+        <td class="num">Dec 2025: 53.0%<br>Feb 2026: 56.1%<br><span class="arrow-up">↑ +3 pp</span> step-change</td>
+        <td>This is the cleanest single-release win in the dataset. Worth post-morteming what specifically worked (card density? CTA placement?) and applying the pattern to other listing surfaces.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Tracking caveat</span><br><span style="font-size:12px;color:var(--color-text-secondary);">May 15 event change</span></td>
+        <td>v10.8 (May 15) changed the placement of the proceed_checkout event. May 1–14 and May 15–21 Paid funnel step rates measure subtly different things.</td>
+        <td class="num">v10.8 affects late-May data<br>"Proceed Payment → Payment" step is the most affected</td>
+        <td>When judging late-May paid funnel performance, discount step-rate changes that align with v10.8 — they're likely measurement artefacts, not behaviour shifts. Re-baseline once a full post-v10.8 month is available (June).</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">LTV</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Cohort dilution</span></td>
+        <td>Per-user LTV is inversely correlated with cohort size: small early cohorts (May 2025: 15 users, ₹6,786 LTV) far outpace large recent ones (Nov 2025: 72 users, ₹3,390 / Apr 2026: 66 users, ₹2,464).</td>
+        <td class="num">May 2025 LTV: ₹6,786<br>Nov 2025 LTV: ₹3,390<br>Apr 2026 LTV: ₹2,464<br><span class="arrow-dn">↓ −64%</span> peak → latest</td>
+        <td>Scaling acquisition is bringing in materially lower-value users — paid spend is buying volume at the cost of quality. Until LTV stabilises, treat new-user growth as a vanity metric and watch payback per channel, not headline acquired-user count.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Retention</span><br><span style="font-size:12px;color:var(--color-text-secondary);">M01 plateau</span></td>
+        <td>Across iOS cohorts, M01 user-repeat sits in a narrow 5–27% band with no clear trend over the last 6 cohorts. Revenue-repeat at M01 is similarly flat (~10–48%, but volatile due to small cohort sizes).</td>
+        <td class="num">Avg M01 user-repeat: ~16%<br>Avg M01 rev-repeat: ~21%<br>No upward trajectory in recent cohorts</td>
+        <td>Retention isn't degrading, but it isn't improving either — the platform isn't getting "stickier" with newer cohorts. Until M01 user-repeat moves above 25% sustainably, growth has to come from new acquisition, not LTV expansion.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Funnel</span><br><span style="font-size:12px;color:var(--color-text-secondary);">HP recovery</span></td>
+        <td>iOS HP → Listing rate climbed from ~30% in mid-2025 to ~38% by May 2026. v9.3 (Mar 2, new Library page + event renames) is the apparent inflection.</td>
+        <td class="num">Mid-2025: ~30%<br>May 2026: 38%<br><span class="arrow-up">↑ +8 pp</span></td>
+        <td>The top of the funnel is healthier than ever. Leakage is now concentrated deep in the auth + payment flow, not in browsing. Investment focus should shift from "discoverability" fixes to "checkout completion" fixes.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="ins-section">
   <div class="ins-section-title">Positive signals</div>
   <table>
     <thead>

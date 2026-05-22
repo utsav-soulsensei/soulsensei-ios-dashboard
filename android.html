@@ -661,6 +661,64 @@
 </div>
 
 <div class="ins-section">
+  <div class="ins-section-title">Deep-dive findings (funnel · releases · LTV · retention)</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">Finding</th>
+        <th style="width:22%">What the data shows</th>
+        <th style="width:22%">Scale / magnitude</th>
+        <th style="width:38%">So what</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-neg">Funnel</span><br><span style="font-size:12px;color:var(--color-text-secondary);">May OTP collapse</span></td>
+        <td>Android Paid PDP funnel May 2026: PDP views nearly doubled (2,601 → 4,571), but OTP → Login fell from 84% to 20%, and Login → Purchase from 75% to 25%. Overall paid CR collapsed from 2.07% to 0.74%.</td>
+        <td class="num">Apr Paid CR: 2.07%<br>May Paid CR: 0.74%<br><span class="arrow-dn">↓ −64%</span> in one month<br>PDP views: +76% MoM</td>
+        <td>Either the OTP delivery service degraded, or paid campaigns flooded the top of the funnel with low-intent / bot traffic. Same-day triage on SMS delivery rates and a campaign-source audit would isolate which. ROAS is propped up at ~1× only by the volume spike.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Funnel</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Auth is the biggest leak</span></td>
+        <td>On the Paid Course PDP, logged-in users convert at ~2× the rate of logged-out users — OTP + Login eat roughly half the conversion in normal months.</td>
+        <td class="num">Logged-in CR avg: ~5.0%<br>Logged-out CR avg: ~2.7%<br><span class="arrow-up">↑ ~2×</span></td>
+        <td>Pre-authenticating more visitors is the single biggest CR lever. Anything that keeps users logged in (silent re-auth, biometric quick-login, persistent sessions) returns asymmetric impact vs. funnel UI tweaks.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Release impact</span><name></name><br><span style="font-size:12px;color:var(--color-text-secondary);">JWT + login flow</span></td>
+        <td>v0.7.8 (Apr 28) "JWT token expire fixed · subscription · FB deferred deeplink" should have improved login-state retention — yet Android CR continues to slip. The fix may be cancelled out by the May paid-traffic quality crash.</td>
+        <td class="num">v0.7.8 Apr 28<br>Android May CR: 1.07% (lowest in dataset)</td>
+        <td>The auth-side improvement isn't visible in the metrics because traffic quality dominates. Worth re-validating the JWT fix in isolation on a clean traffic source before assuming it works.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">LTV</span><br><span style="font-size:12px;color:var(--color-text-secondary);">Cohort dilution — severe</span></td>
+        <td>Per-user LTV has collapsed as cohort size grew: Jun 2025 ₹9,078 (15 users) → Apr 2026 ₹1,802 (92 users, the largest cohort).</td>
+        <td class="num">Peak: ₹9,078 (Jun 2025)<br>Latest: ₹1,802 (Apr 2026)<br><span class="arrow-dn">↓ −80%</span> peak → latest</td>
+        <td>Android is buying many more users at much lower per-user value. Apr 2026 is the worst combination in the dataset — biggest cohort × lowest LTV. Paid spend efficiency has degraded by a multiple, even though ROAS reads at ~1× (which is itself near break-even).</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-neg">Retention</span><br><span style="font-size:12px;color:var(--color-text-secondary);">New-buyer share dropping</span></td>
+        <td>May 2026 new-buyer share fell to 39% — the lowest in the dataset, down from 50% in April. Combined with falling CR and falling LTV, this is the third symptom of paid-traffic quality erosion.</td>
+        <td class="num">Jan high: 55%<br>Apr: 50%<br>May: 39%<br><span class="arrow-dn">↓ −11 pp</span> Apr→May</td>
+        <td>Revenue is increasingly carried by existing buyers. Without a new-acquisition rebound, total growth will cap at the existing base's repeat behaviour — currently a modest M01 user-repeat in the 7–17% range.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-warn">Release impact</span><br><span style="font-size:12px;color:var(--color-text-secondary);">v0.5.0 listing redesign</span></td>
+        <td>v0.5.0 (Jan 8) "Listing page new design · bottom nav redesign · 10-min attendance" preceded a sustained CR uptick (Feb peaked at 1.97% before later collapse).</td>
+        <td class="num">Pre-v0.5.0 CR: ~1.2%<br>Post-v0.5.0 peak (Feb): 1.97%<br><span class="arrow-up">↑ +0.8 pp</span> short-term</td>
+        <td>The gain proved temporary — by May, CR was 1.07%. Either the redesign benefit decayed, or it was masked by the same paid-quality issue affecting May broadly. A controlled re-introduction of the design on a clean cohort would isolate which.</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-pos">Funnel</span><br><span style="font-size:12px;color:var(--color-text-secondary);">HP recovery</span></td>
+        <td>Android HP → Listing rate climbed from a Dec low of 13% to 42% by May 2026 — its highest ever.</td>
+        <td class="num">Dec 2025: 13.3%<br>May 2026: 42.4%<br><span class="arrow-up">↑ +29 pp</span></td>
+        <td>The top of the Android funnel is structurally healthier than ever — the issue is no longer "users finding the catalog". Investment should shift entirely to deeper-funnel fixes (PDP → Cart → Payment), where the May collapse occurred.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="ins-section">
   <div class="ins-section-title">Positive signals</div>
   <table>
     <thead>
