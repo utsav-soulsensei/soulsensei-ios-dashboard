@@ -3403,6 +3403,39 @@ const FEATURES=[
       'Expected secondary lever: arrest the falling new-buyer share by reserving above-fold real estate for highest-converting beginner content.',
       'Rough size: if repeat-buyer HP→Listing climbs by 5pp on iOS+Android combined, that\'s ~700 extra listing visits/month at current traffic, which compounds through the rest of the funnel.'
     ]
+  },
+  {
+    title:'Onboarding Flow',
+    area:'Onboarding',
+    priority:'medium',
+    summary:'A short, 2–3 step first-open flow that captures user intent (goal, experience level, time available, focus area) and uses it to seed the first session recommendation. Doubles as the data source for Homepage Personalisation.',
+    evidence:[
+      {
+        title:'New buyer share is shrinking — first-time experience matters more',
+        body:'iOS new buyer %: Jan 46% → Apr 45% → May 43%. Android: Jan 55% → Apr 50% → May 39%. The platform is increasingly leaning on repeat purchases, which makes converting and retaining each new user more valuable. A first-open onboarding directly serves the segment whose conversion is slipping.',
+        link:'See Charts → New % over time'
+      },
+      {
+        title:'M01 retention is plateaued — first session likely a poor fit',
+        body:'iOS M01 user-repeat sits in a 16–18% band across recent cohorts; Android is 7–18%. No upward trajectory. Industry pattern: well-onboarded users repeat at 1.5–2× the rate. If new users are being dropped onto a generic catalog without guidance, sub-optimal first picks are a plausible contributor to flat M01.',
+        link:'See Retention → Heatmap / Curves'
+      },
+      {
+        title:'LTV decline tracks with cohort size — newer users get less value',
+        body:'iOS Apr 2026 LTV: ₹2,464 (vs ₹3,837 avg). Android Apr 2026 LTV: ₹1,802 (lowest in dataset, on biggest 92-user cohort). Newer users are worth less because their first experiences aren\'t matching their needs. Onboarding\'s job is to make the first match better, which is the LTV lever.',
+        link:'See Retention → LTV view'
+      },
+      {
+        title:'Personalisation needs signals — no signal source today',
+        body:'Homepage Personalisation (further down this list) requires user segments to be useful: beginner vs experienced, stress vs sleep vs focus, time-budget. Today we have none of these signals — only buy-history. Onboarding is the canonical way to capture them, and it captures them before the user has been exposed to any content (so it\'s unbiased).',
+        link:'See Features → Homepage Personalisation'
+      }
+    ],
+    impact:[
+      'Primary lever: lift M01 user-repeat by 3–5pp through better first-session fit. On recent ~60-user iOS cohorts that\'s +1.8–3 returning users/month at zero acquisition cost; ~2–4.5 on Android\'s larger 90-user cohorts.',
+      'Secondary lever: produce the signal layer required for Homepage Personalisation. Without onboarding, personalisation is reduced to history-only recommendations, which fail for the new-user segment that needs it most.',
+      'Tertiary lever: a clear first-session recommendation should also lift PDP→Cart on the very first session by pushing users to the highest-converting beginner content, lifting LTV at the same time it lifts CR.'
+    ]
   }
 ];
 
