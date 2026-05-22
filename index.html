@@ -3252,31 +3252,15 @@ const FEATURES=[
         link:'See Funnels → HP→Listing→PDP'
       },
       {
-        title:'Android listing redesign was less impactful',
-        body:'Android v0.6.8 (Mar 16) "New library design" was tagged only Medium impact. Android Listing→PDP in May 2026 is 52.7%, only marginally above its mid-2025 baseline. Either the redesign wasn\'t enough or the Android catalog browsing problem is different. A coordinated cross-platform listing program needs different prescriptions per platform.',
-        link:'See Releases (Android dashboard)'
-      },
-      {
         title:'Wrong-fit selection plausibly limits retention',
         body:'iOS Apr 2026 cohort LTV: ₹2,464 — well below the ₹3,837 average. M01 user-repeat across recent cohorts is stuck in a 16–18% band. If new users are picking sub-optimal first sessions (because they can\'t tell which is right for them), early disappointment kills repeat purchase. Decision aids (length / difficulty / "best for new users") are the lever.',
         link:'See Retention → LTV view + Heatmap'
-      },
-      {
-        title:'No filter-usage data today',
-        body:'The dashboard has no metrics on filter clicks, filter combinations, or "no-results" rates. Whatever ships needs telemetry (filter_applied event with the filter set as a property) — otherwise we can only judge filters indirectly through Listing→PDP, which is a blunt instrument.',
-        link:'Build into release scope'
       }
     ],
     impact:[
       'Primary lever: lift Listing→PDP back above the Feb 2026 peak of 56% — would add ~2–3pp on the funnel\'s most stable step, compounding into all downstream metrics.',
       'Secondary lever: better card hierarchy / decision aids should lift average ticket size by surfacing the right premium courses to the right user.',
       'Tertiary lever: improving first-purchase fit should raise M01 user-repeat — currently flat in the 16–18% range. Even a 3pp lift in M01 retention on recent 60-user cohorts is +1.8 returning users/month at zero marginal acquisition cost.'
-    ],
-    risks:[
-      'Filter UX is easy to over-design — too many filters reduces use. Worth instrumenting filter open rate + filter applied rate before adding new dimensions.',
-      'Decision-aid badges ("best for beginners", "intermediate", etc.) require accurate metadata on every course. If metadata is uneven, the badges will look arbitrary and hurt trust.',
-      'A second listing redesign close after v8.4 / v0.6.8 risks redesign fatigue — staff who are still adapting to the last one. Worth pacing iterations with a clear hypothesis per release.',
-      'Listing→PDP erosion may be partly catalog-growth related (more items, same UI surface) rather than UI quality — pure UI rework won\'t help if the catalog needs better curation upstream.'
     ]
   },
   {
@@ -3310,11 +3294,6 @@ const FEATURES=[
       'Expected primary lever: lift HP→Listing rate for repeat users (currently averaged with new buyers, masking under-performance for repeat segment specifically).',
       'Expected secondary lever: arrest the falling new-buyer share by reserving above-fold real estate for highest-converting beginner content.',
       'Rough size: if repeat-buyer HP→Listing climbs by 5pp on iOS+Android combined, that\'s ~700 extra listing visits/month at current traffic, which compounds through the rest of the funnel.'
-    ],
-    risks:[
-      'No segment-level funnel data today — we can\'t directly measure new vs repeat HP→Listing rates. Build the measurement before rolling out, or you won\'t know whether it worked.',
-      'May 2026 Android Paid funnel collapse (OTP→Login 84% → 20%) means current Android metrics are noisy. Wait at least one clean post-fix month before reading Android personalisation results.',
-      'Personalisation hides catalog breadth from repeat users → can reduce serendipitous discovery of unrelated categories. Reserve a "discovery rail" slot regardless of personalisation.'
     ]
   }
 ];
@@ -3329,7 +3308,6 @@ function renderFeatures(){
       ${e.link?`<div class="feat-evidence-link">→ ${e.link}</div>`:''}
     </div>`).join('');
     const impactHtml=f.impact.map(i=>`<li>${i}</li>`).join('');
-    const risksHtml=f.risks.map(r=>`<li>${r}</li>`).join('');
     return `<div class="feat-card">
       <div class="feat-head">
         <span class="feat-title">${f.title}</span>
@@ -3341,8 +3319,6 @@ function renderFeatures(){
       <div class="feat-evidence">${evHtml}</div>
       <div class="feat-section-title">Expected impact</div>
       <div class="feat-impact"><ul>${impactHtml}</ul></div>
-      <div class="feat-section-title">Risks &amp; open questions</div>
-      <div class="feat-risks"><ul>${risksHtml}</ul></div>
     </div>`;
   }).join('');
 }
